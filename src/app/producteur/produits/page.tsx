@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { products } from '@/data/mock-products';
 import { formatPrice, getStatusLabel, getStatusColor, getStatusBgColor } from '@/lib/utils';
-import { Plus, Minus, Edit2, AlertCircle } from 'lucide-react';
+import { Plus, Minus, Edit2, AlertCircle, Zap, Check, Mic } from 'lucide-react';
 import { categories as globalCategories } from '@/data/mock-categories';
 import { Product } from '@/types';
 
@@ -20,7 +20,25 @@ export default function MesProduitsPage() {
   const [localProducts, setLocalProducts] = useState<Product[]>(myProducts);
   const filtered = tab === 'tous' || tab === 'inventaire' ? localProducts : localProducts.filter(p => p.status === tab);
 
+  const handleStockChange = (id: string, newStock: number) => {
+    setLocalProducts(prev => prev.map(p => p.id === id ? { ...p, stock: Math.max(0, newStock), status: newStock === 0 ? 'en_rupture' : 'en_vente' } : p));
+  };
+
+  const handlePriceChange = (id: string, newPrice: number) => {
+    setLocalProducts(prev => prev.map(p => p.id === id ? { ...p, price: Math.max(0, newPrice) } : p));
+  };
+
+  const [isSaving, setIsSaving] = useState(false);
+  const handleSaveInventory = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      alert('Inventaire sauvegardé avec succès !');
+    }, 800);
+  };
+
   const [showAddForm, setShowAddForm] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     categoryId: globalCategories[0].id,
@@ -32,6 +50,23 @@ export default function MesProduitsPage() {
     stock: '',
     quality: 'Standard',
   });
+
+  const handleVoiceCommand = () => {
+    setIsListening(true);
+    // Simuler la dictée et le remplissage
+    setTimeout(() => {
+      setFormData({
+        ...formData,
+        name: 'Oignons Galmi de qualité',
+        price: '350',
+        stock: '500',
+        description: 'Récolte fraîche d\'oignons Galmi bien secs et de bonne taille. Prêts pour le groupage.',
+        categoryId: globalCategories.find(c => c.name.includes('Légumes'))?.id || globalCategories[0].id,
+      });
+      setIsListening(false);
+      alert('Saisie vocale terminée et reconnue avec succès !');
+    }, 3000);
+  };
 
   const handleAddProduct = () => {
     if (!formData.name || !formData.price || !formData.stock) {
@@ -81,14 +116,37 @@ export default function MesProduitsPage() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
       {showAddForm ? (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--bg)', zIndex: 100, overflowY: 'auto', paddingBottom: 80 }}>
-          <div className="page-header" style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 10 }}>
-            <button onClick={() => setShowAddForm(false)}>✕</button>
-            <h1>Nouveau produit</h1>
-            <div style={{ width: 24 }} />
+        <div>
+          <div className="page-header" style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', display: 'flex', alignItems: 'center' }}>
+            <button onClick={() => setShowAddForm(false)} style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', background: 'transparent', border: 'none' }}>
+              <span style={{ fontSize: 24 }}>←</span>
+            </button>
+            <h1 style={{ flex: 1, fontSize: 18, margin: 0 }}>Nouveau produit</h1>
+            
+            {/* BOUTON MICROPHONE */}
+            <button 
+              onClick={handleVoiceCommand}
+              className={isListening ? "pulse-animation" : ""}
+              style={{ 
+                width: 44, height: 44, borderRadius: 22, 
+                background: isListening ? '#EF4444' : 'var(--primary-light)', 
+                color: isListening ? '#fff' : 'var(--primary)', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: 'none', transition: 'all 0.3s ease'
+              }}
+            >
+              <Mic size={20} />
+            </button>
           </div>
-          
-          <div style={{ padding: 20 }}>
+
+          <div style={{ padding: '20px' }}>
+            {isListening && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, padding: 12, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, color: '#EF4444', fontSize: 13, fontWeight: 600 }}>
+                <span className="pulse-dot" style={{ width: 10, height: 10, background: '#EF4444', borderRadius: 5 }}></span>
+                Écoute en cours... Parlez maintenant. (Simulation)
+              </div>
+            )}
+
             <div className="card" style={{ padding: 20, marginBottom: 20 }}>
               <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Informations générales</h3>
               <div style={{ marginBottom: 16 }}>
@@ -186,35 +244,51 @@ export default function MesProduitsPage() {
           </div>
           <div style={{ padding: '0 20px' }}>
             {tab === 'inventaire' ? (
-              // VUE INVENTAIRE - GESTION DU STOCK
-              filtered.map(product => (
-                <div key={product.id} className="card" style={{ padding: 14, marginBottom: 10 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <img src={product.images[0]} alt={product.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
-                      <div>
-                        <p style={{ fontWeight: 600, fontSize: 14 }}>{product.name}</p>
-                        <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{product.unit}</p>
+              // VUE INVENTAIRE - GESTION DU STOCK RAPIDE
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Modifiez rapidement vos prix et stocks.</p>
+                  <button onClick={handleSaveInventory} className="btn btn-primary btn-sm" disabled={isSaving} style={{ padding: '8px 16px' }}>
+                    {isSaving ? 'Enregistrement...' : <><Check size={16} /> Tout Sauvegarder</>}
+                  </button>
+                </div>
+                
+                <div style={{ background: 'var(--surface)', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', background: 'var(--bg)', padding: '12px 16px', fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ flex: 2 }}>PRODUIT</div>
+                    <div style={{ flex: 1, textAlign: 'center' }}>PRIX (FCFA)</div>
+                    <div style={{ flex: 1, textAlign: 'center' }}>STOCK</div>
+                  </div>
+                  
+                  {filtered.map(product => (
+                    <div key={product.id} style={{ display: 'flex', padding: '12px 16px', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
+                      <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <img src={product.images[0]} alt={product.name} style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }} />
+                        <div style={{ overflow: 'hidden' }}>
+                          <p style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{product.name}</p>
+                          <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>/{product.unit}</p>
+                        </div>
+                      </div>
+                      <div style={{ flex: 1, padding: '0 8px' }}>
+                        <input 
+                          type="number" 
+                          value={product.price}
+                          onChange={e => handlePriceChange(product.id, parseInt(e.target.value) || 0)}
+                          style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: 6, fontSize: 13, outline: 'none', textAlign: 'center' }} 
+                        />
+                      </div>
+                      <div style={{ flex: 1, padding: '0 8px' }}>
+                        <input 
+                          type="number" 
+                          value={product.stock}
+                          onChange={e => handleStockChange(product.id, parseInt(e.target.value) || 0)}
+                          style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: 6, fontSize: 13, outline: 'none', textAlign: 'center', background: product.stock === 0 ? '#FEF2F2' : '#fff' }} 
+                        />
                       </div>
                     </div>
-                    <span className="badge" style={{ background: getStatusBgColor(product.status), color: getStatusColor(product.status), fontSize: 10 }}>
-                      {getStatusLabel(product.status)}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', padding: 10, borderRadius: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>Stock actuel</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <button style={{ width: 32, height: 32, borderRadius: 8, background: '#fff', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Minus size={16} />
-                      </button>
-                      <span style={{ fontWeight: 800, fontSize: 16, minWidth: 30, textAlign: 'center' }}>{product.stock}</span>
-                      <button style={{ width: 32, height: 32, borderRadius: 8, background: '#fff', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))
+              </div>
             ) : (
               // VUE NORMALE DES PRODUITS
               filtered.map(product => (
@@ -225,13 +299,21 @@ export default function MesProduitsPage() {
                     <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', marginBottom: 4 }}>{formatPrice(product.price)} / {product.unit}</p>
                     <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Stock: {product.stock} {product.unit}</p>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-end', gap: 6 }}>
                     <span className="badge" style={{ background: getStatusBgColor(product.status), color: getStatusColor(product.status), fontSize: 11 }}>
                       {getStatusLabel(product.status)}
                     </span>
-                    <button style={{ padding: 6, background: 'var(--bg)', borderRadius: 8, color: 'var(--text-secondary)' }}>
-                      <Edit2 size={16} />
-                    </button>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button 
+                        onClick={() => alert(`Vente Flash activée pour ${product.name} (-50%) ! Il a été ajouté à la page d'accueil des acheteurs.`)} 
+                        style={{ padding: '6px 10px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#EF4444', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}
+                      >
+                        <Zap size={14} fill="#EF4444" />
+                      </button>
+                      <button style={{ padding: 6, background: 'var(--bg)', borderRadius: 8, color: 'var(--text-secondary)' }}>
+                        <Edit2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -239,6 +321,23 @@ export default function MesProduitsPage() {
           </div>
         </>
       )}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+          70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .pulse-animation {
+          animation: pulse 1.5s infinite;
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        .pulse-dot {
+          animation: blink 1s infinite;
+        }
+      `}} />
     </div>
   );
 }

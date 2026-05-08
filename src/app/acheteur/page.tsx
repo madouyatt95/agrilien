@@ -82,6 +82,17 @@ export default function AcheteurHomePage() {
             <span>Tous</span>
             <div className={styles.drawerItemBar} />
           </button>
+          <button
+            className={styles.drawerItem}
+            onClick={() => { setDrawerOpen(false); router.push('/acheteur/agent-ia'); }}
+            style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#0284C7', fontWeight: 700 }}
+          >
+            <div className={styles.drawerItemContent}>
+              <span style={{ fontSize: 20 }}>🤖</span>
+              <span>Sourcing IA (Premium)</span>
+            </div>
+            <ChevronRight size={18} color="#0284C7" />
+          </button>
           {categories.map(cat => (
             <button
               key={cat.id}
@@ -156,6 +167,39 @@ export default function AcheteurHomePage() {
           </div>
         )}
       </form>
+
+      {/* ═══ VENTES FLASH (PANIC BUTTON ANTI-GASPI) ═══ */}
+      <div style={{ padding: '0 20px', marginBottom: 24 }}>
+        <div style={{ background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)', borderRadius: 16, padding: '16px 20px', color: '#fff', boxShadow: '0 10px 25px rgba(239, 68, 68, 0.25)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>⚡</span> Ventes Flash Anti-Gaspi
+            </h2>
+            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: 8, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+              ⏱️ 01:45:22
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }}>
+            {/* Simulation d'un produit en vente flash */}
+            <div onClick={() => router.push(`/acheteur/produit/prod-3`)} style={{ minWidth: 160, background: '#fff', borderRadius: 12, overflow: 'hidden', color: '#000', cursor: 'pointer', flexShrink: 0, position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 0, right: 0, background: '#EF4444', color: '#fff', fontSize: 12, fontWeight: 800, padding: '4px 8px', borderBottomLeftRadius: 12, zIndex: 2 }}>
+                -70%
+              </div>
+              <div style={{ height: 110, position: 'relative' }}>
+                <img src="https://images.unsplash.com/photo-1550828520-4cb496926fc9?w=300&h=300&fit=crop" alt="Mangues Kent" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <div style={{ padding: '10px 12px' }}>
+                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Mangues Kent mûres</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: '#EF4444' }}>300F</span>
+                  <span style={{ fontSize: 11, color: '#9CA3AF', textDecoration: 'line-through' }}>1000F</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ═══ HERO SLIDER — dynamique (Un seul encadré) ═══ */}
       <div className={styles.heroCard} style={{ padding: 0, display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
