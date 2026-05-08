@@ -39,13 +39,33 @@ export default function MesProduitsPage() {
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [flashSaleProduct, setFlashSaleProduct] = useState<string | null>(null);
+  
+  const [showFlashModal, setShowFlashModal] = useState<Product | null>(null);
+  const [flashModalData, setFlashModalData] = useState({ promoPrice: '', quantity: '' });
+  const [flashSaleProduct, setFlashSaleProduct] = useState<{name: string, discount: number} | null>(null);
 
-  const handleFlashSale = (productName: string) => {
-    setFlashSaleProduct(productName);
+  const openFlashModal = (product: Product) => {
+    setShowFlashModal(product);
+    setFlashModalData({ 
+      promoPrice: Math.round(product.price * 0.5).toString(), 
+      quantity: product.stock.toString() 
+    });
+  };
+
+  const submitFlashSale = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!showFlashModal) return;
+    
+    const originalPrice = showFlashModal.price;
+    const promo = parseInt(flashModalData.promoPrice) || originalPrice;
+    const discount = Math.round((1 - (promo / originalPrice)) * 100);
+    
+    setFlashSaleProduct({ name: showFlashModal.name, discount });
+    setShowFlashModal(null);
+    
     setTimeout(() => {
       setFlashSaleProduct(null);
-    }, 3000);
+    }, 4000);
   };
 
   const [formData, setFormData] = useState({
@@ -314,7 +334,7 @@ export default function MesProduitsPage() {
                     </span>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button 
-                        onClick={(e) => { e.stopPropagation(); handleFlashSale(product.name); }} 
+                        onClick={(e) => { e.stopPropagation(); openFlashModal(product); }} 
                         style={{ padding: '6px 10px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#EF4444', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}
                       >
                         <Zap size={14} fill="#EF4444" />
@@ -329,6 +349,60 @@ export default function MesProduitsPage() {
             )}
           </div>
           
+          {/* MODAL DE CONFIGURATION VENTE FLASH */}
+          {showFlashModal && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowFlashModal(null)}>
+              <div style={{ background: 'var(--surface)', width: '100%', maxWidth: 400, borderRadius: 24, padding: 24 }} onClick={e => e.stopPropagation()}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                  <div style={{ background: '#FEF2F2', width: 40, height: 40, borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Zap size={20} fill="#EF4444" color="#EF4444" />
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: 18, fontWeight: 800 }}>Vente Flash</h2>
+                    <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{showFlashModal.name}</p>
+                  </div>
+                </div>
+                
+                <form onSubmit={submitFlashSale}>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                      <span>Prix Promotionnel (FCFA)</span>
+                      <span style={{ color: '#EF4444' }}>Normal: {showFlashModal.price}F</span>
+                    </label>
+                    <input 
+                      type="number" 
+                      required
+                      value={flashModalData.promoPrice}
+                      onChange={e => setFlashModalData({...flashModalData, promoPrice: e.target.value})}
+                      style={{ width: '100%', padding: '12px 16px', border: '2px solid #FECACA', borderRadius: 8, fontSize: 16, fontWeight: 700, color: '#EF4444', outline: 'none' }} 
+                    />
+                  </div>
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                      <span>Quantité allouée</span>
+                      <span>Max: {showFlashModal.stock} {showFlashModal.unit}</span>
+                    </label>
+                    <input 
+                      type="number" 
+                      required
+                      max={showFlashModal.stock}
+                      value={flashModalData.quantity}
+                      onChange={e => setFlashModalData({...flashModalData, quantity: e.target.value})}
+                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, outline: 'none' }} 
+                    />
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button type="button" onClick={() => setShowFlashModal(null)} className="btn btn-outline" style={{ flex: 1 }}>Annuler</button>
+                    <button type="submit" className="btn" style={{ flex: 2, background: '#EF4444', color: '#fff', border: 'none' }}>
+                      Lancer l'Alerte
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
           {/* TOAST DE VENTE FLASH */}
           {flashSaleProduct && (
             <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, animation: 'fadeIn 0.3s ease' }}>
@@ -339,7 +413,7 @@ export default function MesProduitsPage() {
                 <div>
                   <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>Alerte Anti-Gaspi Activée !</h4>
                   <p style={{ margin: '4px 0 0', fontSize: 12, color: '#A1A1AA', lineHeight: 1.4 }}>
-                    Le produit <strong style={{ color: '#fff' }}>{flashSaleProduct}</strong> a été mis en Vente Flash (-50%). Il est désormais mis en avant sur la page d'accueil des acheteurs.
+                    Le produit <strong style={{ color: '#fff' }}>{flashSaleProduct.name}</strong> a été mis en Vente Flash (-{flashSaleProduct.discount}%). Il est désormais mis en avant sur la page d'accueil des acheteurs.
                   </p>
                 </div>
               </div>
