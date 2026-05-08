@@ -39,6 +39,15 @@ export default function MesProduitsPage() {
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [flashSaleProduct, setFlashSaleProduct] = useState<string | null>(null);
+
+  const handleFlashSale = (productName: string) => {
+    setFlashSaleProduct(productName);
+    setTimeout(() => {
+      setFlashSaleProduct(null);
+    }, 3000);
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     categoryId: globalCategories[0].id,
@@ -305,7 +314,7 @@ export default function MesProduitsPage() {
                     </span>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button 
-                        onClick={() => alert(`Vente Flash activée pour ${product.name} (-50%) ! Il a été ajouté à la page d'accueil des acheteurs.`)} 
+                        onClick={(e) => { e.stopPropagation(); handleFlashSale(product.name); }} 
                         style={{ padding: '6px 10px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#EF4444', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}
                       >
                         <Zap size={14} fill="#EF4444" />
@@ -319,6 +328,23 @@ export default function MesProduitsPage() {
               ))
             )}
           </div>
+          
+          {/* TOAST DE VENTE FLASH */}
+          {flashSaleProduct && (
+            <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, animation: 'fadeIn 0.3s ease' }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ background: '#EF4444', width: 32, height: 32, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Zap size={16} fill="#fff" />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>Alerte Anti-Gaspi Activée !</h4>
+                  <p style={{ margin: '4px 0 0', fontSize: 12, color: '#A1A1AA', lineHeight: 1.4 }}>
+                    Le produit <strong style={{ color: '#fff' }}>{flashSaleProduct}</strong> a été mis en Vente Flash (-50%). Il est désormais mis en avant sur la page d'accueil des acheteurs.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
       <style dangerouslySetInnerHTML={{__html: `
