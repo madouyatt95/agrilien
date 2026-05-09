@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { products } from '@/data/mock-products';
-import { ChevronLeft, LogOut, ChevronRight, ShoppingBag, Heart, Star, MessageCircle, MapPin, Phone, Mail, RefreshCw, Upload, Navigation, Send, Bell, Truck, CreditCard, Edit2 } from 'lucide-react';
+import { ChevronLeft, LogOut, ChevronRight, ShoppingBag, Heart, Star, MessageCircle, MapPin, Phone, Mail, RefreshCw, Upload, Navigation, Send, Bell, Truck, CreditCard, Edit2, AlertCircle } from 'lucide-react';
 import { formatPrice, getCurrentLocation } from '@/lib/utils';
 import { useGalsenRegions } from '@/hooks/useGalsenAPI';
+import { specialties as SPECIALTIES_LIST } from '@/data/product-catalog';
 
 type ActivePanel = null | 'infos' | 'adresses' | 'paiement' | 'notifs' | 'favoris' | 'messages' | 'avis' | 'chat' | 'devenir_producteur';
 
@@ -21,9 +22,20 @@ export default function ProfilPage() {
     phone: user?.phone || '+221 77 123 45 67',
     address: 'Rue 12, Médina, Dakar',
   });
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
   const [savedMsg, setSavedMsg] = useState('');
   const [notifSettings, setNotifSettings] = useState({ orders: true, promos: true, messages: true, newsletter: false });
   const [formReq, setFormReq] = useState({ farmName: '', region: 'Dakar', department: '', specialties: '' });
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
+  
+  const toggleSpec = (s: string) => {
+    setSelectedSpecialties(prev => {
+      const newSpecs = prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s];
+      setFormReq({ ...formReq, specialties: newSpecs.join(', ') });
+      return newSpecs;
+    });
+  };
   const { regionNames, getDepartments, loading: regionsLoading } = useGalsenRegions();
 
   const existingReq = user ? producerRequests.find(r => r.userId === user.id) : null;
@@ -391,7 +403,7 @@ export default function ProfilPage() {
                       regionNames.map(name => <option key={name} value={name}>{name}</option>)
                     )}
                   </select>
-                  <button onClick={async () => { try { const c = await getCurrentLocation(); const m = regionNames.find(r => c.toLowerCase().includes(r.toLowerCase())); if (m) setFormReq({...formReq, region: m, department: ''}); alert(`📍 Position : ${c}`); } catch(e: any) { alert(e.message); } }} style={{ color: '#3B82F6', flexShrink: 0, padding: 8 }} title="Me géolocaliser">
+                  <button onClick={async () => { try { const c = await getCurrentLocation(); const m = regionNames.find(r => c.toLowerCase().includes(r.toLowerCase())); if (m) setFormReq({...formReq, region: m, department: ''}); showToast(`📍 Position : ${c}`); } catch(e: any) { showToast(`⚠️ ${e.message}`); } }} style={{ color: '#3B82F6', flexShrink: 0, padding: 8 }} title="Me géolocaliser">
                     <Navigation size={18} />
                   </button>
                 </div>
@@ -406,8 +418,14 @@ export default function ProfilPage() {
                 </div>
               )}
               <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Principales spécialités</label>
-                <input value={formReq.specialties} onChange={e => setFormReq({...formReq, specialties: e.target.value})} placeholder="ex: Mangues, Riz, Oignons..." style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, outline: 'none' }} />
+                <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Principales spécialités</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {SPECIALTIES_LIST.map(s => (
+                    <button key={s} onClick={() => toggleSpec(s)} type="button" style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, border: selectedSpecialties.includes(s) ? '2px solid var(--primary)' : '1px solid var(--border)', background: selectedSpecialties.includes(s) ? 'var(--primary-light)' : 'var(--surface)', color: selectedSpecialties.includes(s) ? 'var(--primary)' : 'var(--text-secondary)' }}>
+                      {selectedSpecialties.includes(s) ? '✓ ' : ''}{s}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>NINEA ou Registre de Commerce</label>
@@ -421,7 +439,7 @@ export default function ProfilPage() {
               </div>
 
               <button className="btn btn-primary btn-block" onClick={() => {
-                if (!user || !formReq.farmName) { alert('Veuillez remplir le nom de l\'exploitation'); return; }
+                if (!user || !formReq.farmName) { showToast('⚠️ Veuillez remplir le nom de l\'exploitation'); return; }
                 submitProducerRequest({
                   userId: user.id,
                   userName: user.name,
@@ -507,6 +525,10 @@ export default function ProfilPage() {
           <LogOut size={18} /> Déconnexion
         </button>
       </div>
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
+      )}
     </div>
   );
 }

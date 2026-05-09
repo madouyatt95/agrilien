@@ -5,6 +5,7 @@ import { products } from '@/data/mock-products';
 import { formatPrice, getStatusLabel, getStatusColor, getStatusBgColor } from '@/lib/utils';
 import { Plus, Minus, Edit2, AlertCircle, Zap, Check, Mic } from 'lucide-react';
 import { categories as globalCategories } from '@/data/mock-categories';
+import { productCatalog, catalogCategories } from '@/data/product-catalog';
 import { Product } from '@/types';
 
 export default function MesProduitsPage() {
@@ -29,11 +30,13 @@ export default function MesProduitsPage() {
   };
 
   const [isSaving, setIsSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
   const handleSaveInventory = () => {
     setIsSaving(true);
     setTimeout(() => {
       setIsSaving(false);
-      alert('Inventaire sauvegardé avec succès !');
+      showToast('✅ Inventaire sauvegardé avec succès !');
     }, 800);
   };
 
@@ -93,13 +96,13 @@ export default function MesProduitsPage() {
         categoryId: globalCategories.find(c => c.name.includes('Légumes'))?.id || globalCategories[0].id,
       });
       setIsListening(false);
-      alert('Saisie vocale terminée et reconnue avec succès !');
+      showToast('✅ Saisie vocale terminée et reconnue !');
     }, 3000);
   };
 
   const handleAddProduct = () => {
     if (!formData.name || !formData.price || !formData.stock) {
-      alert("Veuillez remplir les champs obligatoires (Nom, Prix, Stock).");
+      showToast('⚠️ Veuillez remplir les champs obligatoires (Nom, Prix, Stock).');
       return;
     }
     const finalCategoryName = formData.categoryId === 'autre' ? formData.customCategory : (globalCategories.find(c => c.id === formData.categoryId)?.name || '');
@@ -133,7 +136,7 @@ export default function MesProduitsPage() {
     };
 
     setLocalProducts([newProduct, ...localProducts]);
-    alert('Produit ajouté avec succès !');
+    showToast('✅ Produit ajouté avec succès !');
     setShowAddForm(false);
     // Reset form
     setFormData({
@@ -180,7 +183,20 @@ export default function MesProduitsPage() {
               <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Informations générales</h3>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Nom du produit <span style={{color: '#EF4444'}}>*</span></label>
-                <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="ex: Mangues Kent" style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, outline: 'none' }} />
+                <select value={formData.name} onChange={e => {
+                  const cat = productCatalog.find(p => p.name === e.target.value);
+                  setFormData({...formData, name: e.target.value, unit: cat?.unit || 'Kg', categoryId: globalCategories.find(c => c.name === cat?.category)?.id || globalCategories[0].id });
+                }} style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, outline: 'none', background: '#fff' }}>
+                  <option value="">Sélectionnez un produit...</option>
+                  {catalogCategories.map(cat => (
+                    <optgroup key={cat} label={cat}>
+                      {productCatalog.filter(p => p.category === cat).map(p => (
+                        <option key={p.name} value={p.name}>{p.name} ({p.unit})</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                <button type="button" onClick={() => showToast('📩 Demande envoyée à l\'admin pour ajouter un nouveau produit')} style={{ marginTop: 8, fontSize: 12, color: '#3B82F6', fontWeight: 600, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>+ Suggérer un nouveau produit</button>
               </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Catégorie</label>
@@ -244,11 +260,11 @@ export default function MesProduitsPage() {
             </div>
 
             <div className="card" style={{ padding: 20, marginBottom: 24 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Photos du produit</h3>
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Photos du produit <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)' }}>(4 max)</span></h3>
               <div style={{ width: '100%', padding: '30px', border: '2px dashed var(--primary)', borderRadius: 12, textAlign: 'center', background: 'var(--primary-light)', cursor: 'pointer' }}>
                 <span style={{ fontSize: 24, display: 'block', marginBottom: 8 }}>📸</span>
                 <p style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>Taper pour ajouter des photos</p>
-                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>Format JPG ou PNG</p>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>JPG ou PNG • 4 photos maximum</p>
               </div>
             </div>
 
@@ -438,6 +454,11 @@ export default function MesProduitsPage() {
           animation: blink 1s infinite;
         }
       `}} />
+
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
+      )}
     </div>
   );
 }

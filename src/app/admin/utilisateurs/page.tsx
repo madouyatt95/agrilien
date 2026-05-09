@@ -12,10 +12,13 @@ function UtilisateursContent() {
   
   const [usersList, setUsersList] = useState(initialUsers);
 
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
   const handleBan = (id: string, name: string) => {
     if (confirm(`Voulez-vous suspendre le compte de ${name} ?`)) {
       setUsersList(usersList.filter((u: any) => u.id !== id));
-      alert(`Le compte de ${name} a été suspendu.`);
+      showToast(`Le compte de ${name} a été suspendu.`);
     }
   };
 
@@ -50,10 +53,10 @@ function UtilisateursContent() {
                 <td><span className="badge" style={{ background: '#F0FDF4', color: '#22C55E' }}><ShieldCheck size={12} /> Vérifié</span></td>
                 <td>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => alert(`Envoi de message à ${u.name}`)} style={{ color: '#8B5CF6', background: '#F5F3FF', padding: 6, borderRadius: 6 }} title="Contacter">
+                    <button onClick={() => showToast(`✉️ Envoi de message à ${u.name}`)} style={{ color: '#8B5CF6', background: '#F5F3FF', padding: 6, borderRadius: 6 }} title="Contacter">
                       <Mail size={16} />
                     </button>
-                    <button onClick={() => alert(`Édition du profil: ${u.name}`)} style={{ color: '#3B82F6', background: '#EFF6FF', padding: 6, borderRadius: 6 }} title="Modifier">
+                    <button onClick={() => showToast(`✏️ Édition du profil: ${u.name}`)} style={{ color: '#3B82F6', background: '#EFF6FF', padding: 6, borderRadius: 6 }} title="Modifier">
                       <Edit size={16} />
                     </button>
                     <button onClick={() => handleBan(u.id, u.name)} style={{ color: '#EF4444', background: '#FEF2F2', padding: 6, borderRadius: 6 }} title="Suspendre le compte">
@@ -66,6 +69,10 @@ function UtilisateursContent() {
           </tbody>
         </table>
       </div>
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 30, right: 30, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
+      )}
     </div>
   );
 }

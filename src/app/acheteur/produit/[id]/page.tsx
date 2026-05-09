@@ -1,16 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { products } from '@/data/mock-products';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChevronLeft, Heart, MapPin, Star, Truck, ShoppingCart, MessageCircle, ShieldCheck, Plus, Minus, Share2, Check, Leaf, X, Handshake } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
+const useToast = () => {
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+  return { toast, showToast };
+};
+
 export default function ProductDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { user, addToCart, favorites, toggleFavorite, cartItemCount } = useAuth();
+  const { toast, showToast } = useToast();
   const product = products.find(p => p.id === params.id);
   const isB2B = user?.role === 'acheteur_pro';
   const minQty = product?.isPreorder && isB2B && product.minProOrderQuantity ? product.minProOrderQuantity : 1;
@@ -169,7 +176,7 @@ export default function ProductDetailPage() {
               <span style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={12} /> {product.city}</span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: 12 }} onClick={() => alert('Ouverture de la messagerie avec ' + product.producerName)}>
+              <button className="btn btn-outline btn-sm" style={{ flex: 1, fontSize: 12 }} onClick={() => showToast('💬 Messagerie avec ' + product.producerName + ' bientôt disponible')}>
                 <MessageCircle size={14} style={{ marginRight: 4 }} /> Contacter
               </button>
               <button className="btn btn-primary btn-sm" style={{ flex: 1, fontSize: 12 }} onClick={() => router.push(`/acheteur/producteur/${product.producerId}`)}>
@@ -235,6 +242,60 @@ export default function ProductDetailPage() {
             </div>
           </>
         )}
+
+        {/* ═══ AVIS CLIENTS ═══ */}
+        <div style={{ marginTop: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700 }}>Avis clients</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Star size={16} fill="#FBBF24" color="#FBBF24" />
+              <span style={{ fontSize: 16, fontWeight: 800 }}>{product.rating}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>({product.reviewCount} avis)</span>
+            </div>
+          </div>
+
+          {/* Barres de répartition */}
+          <div style={{ marginBottom: 16 }}>
+            {[5, 4, 3, 2, 1].map(stars => {
+              const pct = stars === 5 ? 65 : stars === 4 ? 22 : stars === 3 ? 8 : stars === 2 ? 3 : 2;
+              return (
+                <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, width: 12, textAlign: 'right' }}>{stars}</span>
+                  <Star size={12} fill="#FBBF24" color="#FBBF24" />
+                  <div style={{ flex: 1, height: 6, background: 'var(--bg)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, background: '#FBBF24', borderRadius: 3 }} />
+                  </div>
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary)', width: 28 }}>{pct}%</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Commentaires mockés */}
+          {[
+            { name: 'Fatou N.', date: 'Il y a 3 jours', stars: 5, comment: 'Excellent produit, très frais et bien emballé. Livraison rapide !' },
+            { name: 'Ibrahima D.', date: 'Il y a 1 semaine', stars: 4, comment: 'Bonne qualité, conforme à la description. Je recommande.' },
+            { name: 'Mariama S.', date: 'Il y a 2 semaines', stars: 5, comment: 'Produit de qualité supérieure. Le producteur est très réactif.' },
+          ].map((review, i) => (
+            <div key={i} style={{ padding: 14, background: 'var(--surface)', borderRadius: 12, marginBottom: 10, border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--primary)' }}>
+                    {review.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700 }}>{review.name}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{review.date}</p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 2 }}>
+                  {[1,2,3,4,5].map(s => <Star key={s} size={12} fill={s <= review.stars ? '#FBBF24' : 'none'} color={s <= review.stars ? '#FBBF24' : '#D1D5DB'} />)}
+                </div>
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{review.comment}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Bottom Actions */}
@@ -299,6 +360,10 @@ export default function ProductDetailPage() {
             </form>
           </div>
         </div>
+      )}
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
       )}
     </div>
   );

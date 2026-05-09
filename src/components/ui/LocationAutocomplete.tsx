@@ -90,7 +90,7 @@ export default function LocationAutocomplete({ value, onChange, placeholder = 'R
         handleSelect(results[0]);
       }
     } catch (err: any) {
-      alert(`Erreur GPS : ${err.message}`);
+      console.warn(`Erreur GPS : ${err.message}`);
     } finally {
       setLocating(false);
     }

@@ -6,6 +6,12 @@ import { ChevronLeft, Plus, X, Gavel, Clock, Users, TrendingUp, Star, Check, Map
 import { formatPrice } from '@/lib/utils';
 import { Tender } from '@/types';
 
+const useToast = () => {
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+  return { toast, showToast };
+};
+
 export interface MockBid {
   id: string; producerName: string; farmName: string; region: string; pricePerUnit: number; quantity: number; rating: number; message: string; isNew?: boolean;
 }
@@ -25,6 +31,7 @@ const initialMockBids: Record<string, MockBid[]> = {
 
 export default function AppelsOffresAcheteurPage() {
   const router = useRouter();
+  const { toast, showToast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
   
@@ -83,7 +90,7 @@ export default function AppelsOffresAcheteurPage() {
     if (!signatureModal.tenderId) return;
     setTenders(prev => prev.map(t => t.id === signatureModal.tenderId ? { ...t, status: 'fermé' } : t));
     setSignatureModal({ open: false, tenderId: null, bid: null });
-    alert('🎉 Contrat signé avec succès ! Le producteur a été notifié et le Smart Contract est enregistré.');
+    showToast('🎉 Contrat signé avec succès ! Le producteur a été notifié.');
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -205,7 +212,7 @@ export default function AppelsOffresAcheteurPage() {
               </button>
             </div>
 
-            <form onSubmit={e => { e.preventDefault(); setShowModal(false); alert('Appel d\'offres publié ! Les producteurs Premium seront notifiés.'); }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <form onSubmit={e => { e.preventDefault(); setShowModal(false); showToast('✅ Appel d\'offres publié ! Les producteurs Premium seront notifiés.'); }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Produit recherché</label>
                 <input required placeholder="Ex: Mangues Kent, Oignons..." style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)' }} />
@@ -340,6 +347,11 @@ export default function AppelsOffresAcheteurPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
       )}
     </div>
   );

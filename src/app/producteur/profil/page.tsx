@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { producerUser } from '@/data/mock-users';
-import { Star, ShieldCheck, MapPin, ChevronRight, ChevronLeft, CreditCard, Truck, Lock, Settings, HelpCircle, LogOut, Edit, Bell, MessageCircle, BarChart3, Package, RefreshCw, Send } from 'lucide-react';
+import { specialties as SPECIALTIES_LIST } from '@/data/product-catalog';
+import { Star, ShieldCheck, MapPin, ChevronRight, ChevronLeft, CreditCard, Truck, Lock, Settings, HelpCircle, LogOut, Edit, Bell, MessageCircle, BarChart3, Package, RefreshCw, Send, Mic, Square, Play, Pause, Upload, Clock } from 'lucide-react';
 
-type Panel = null | 'infos' | 'paiement' | 'adresses' | 'securite' | 'notifs' | 'messages';
+type Panel = null | 'infos' | 'paiement' | 'adresses' | 'securite' | 'notifs' | 'messages' | 'verification';
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -26,8 +27,18 @@ function ProducteurProfilContent() {
     phone: '+221 77 234 56 78', address: `${producer.city}, Sénégal`,
     farmSize: producer.farmSize, specialties: producer.specialties.join(', '),
   });
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(producer.specialties);
   const [notifSettings, setNotifSettings] = useState({ orders: true, promos: true, messages: true, newsletter: false });
   const [savedMsg, setSavedMsg] = useState('');
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+  const [isRecording, setIsRecording] = useState(false);
+  const [voiceMessages, setVoiceMessages] = useState<{id: string, duration: number, playing: boolean}[]>([]);
+  const [chatMessages, setChatMessages] = useState<{id: string, from: 'me'|'other', text?: string, voice?: {duration: number}, time: string}[]>([
+    { id: '1', from: 'other', text: 'Bonjour, je voudrais savoir si vos mangues Kent sont toujours disponibles ?', time: '10:42' },
+    { id: '2', from: 'other', text: 'Je voudrais commander 5 kg de mangues.', time: '10:43' },
+  ]);
+  const [verificationStatus, setVerificationStatus] = useState<'none'|'pending'|'verified'>('none');
 
   const handleSave = () => { setEditMode(false); setSavedMsg('Modifications enregistrées ✓'); setTimeout(() => setSavedMsg(''), 3000); };
   const handleLogout = () => { logout(); router.replace('/login'); };
@@ -40,8 +51,8 @@ function ProducteurProfilContent() {
       { label: 'Téléphone', key: 'phone' as const },
       { label: 'Adresse', key: 'address' as const },
       { label: 'Taille exploitation', key: 'farmSize' as const },
-      { label: 'Spécialités', key: 'specialties' as const },
     ];
+    const toggleSpec = (s: string) => setSelectedSpecialties(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
     return (
       <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
         <div className="page-header">
@@ -64,6 +75,64 @@ function ProducteurProfilContent() {
               )}
             </div>
           ))}
+          {/* Spécialités standardisées */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Spécialités</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {SPECIALTIES_LIST.map(s => (
+                <button key={s} onClick={() => editMode && toggleSpec(s)} type="button" style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, border: selectedSpecialties.includes(s) ? '2px solid var(--primary)' : '1px solid var(--border)', background: selectedSpecialties.includes(s) ? 'var(--primary-light)' : 'var(--surface)', color: selectedSpecialties.includes(s) ? 'var(--primary)' : 'var(--text-secondary)', opacity: editMode ? 1 : 0.7, cursor: editMode ? 'pointer' : 'default' }}>
+                  {selectedSpecialties.includes(s) ? '✓ ' : ''}{s}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══ PANEL: Vérification ═══
+  if (panel === 'verification') {
+    return (
+      <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
+        <div className="page-header">
+          <button onClick={() => setPanel(null)}><ChevronLeft size={24} /></button>
+          <h1>Vérification du compte</h1>
+          <div style={{ width: 24 }} />
+        </div>
+        <div style={{ padding: 20 }}>
+          {verificationStatus === 'pending' ? (
+            <div style={{ textAlign: 'center', padding: 40 }}>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#FFF7ED', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 36 }}><Clock size={36} color="#F59E0B" /></div>
+              <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>En attente de validation</h2>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>Votre pièce d&apos;identité a été soumise. Un administrateur la vérifiera sous 24 à 48h.</p>
+              <div style={{ marginTop: 20, padding: 14, background: '#FFF7ED', borderRadius: 12, fontSize: 13, color: '#B45309' }}>⏳ Statut : En cours de vérification</div>
+            </div>
+          ) : verificationStatus === 'verified' ? (
+            <div style={{ textAlign: 'center', padding: 40 }}>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}><ShieldCheck size={36} color="#22C55E" /></div>
+              <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#22C55E' }}>Compte vérifié ✓</h2>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Votre identité a été confirmée par l&apos;administrateur.</p>
+            </div>
+          ) : (
+            <>
+              <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><ShieldCheck size={28} color="#3B82F6" /></div>
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Vérifiez votre identité</h2>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>Pour accéder à toutes les fonctionnalités, veuillez soumettre votre pièce d&apos;identité.</p>
+              </div>
+              <div style={{ padding: 16, background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', marginBottom: 20 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>📋 Document requis :</p>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>• Carte nationale d&apos;identité (CNI)</p>
+              </div>
+              <div style={{ border: '2px dashed var(--border)', borderRadius: 16, padding: 32, textAlign: 'center', marginBottom: 20 }}>
+                <Upload size={32} color="var(--text-secondary)" style={{ marginBottom: 8 }} />
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Cliquez pour télécharger votre CNI</p>
+                <p style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 4 }}>JPG, PNG ou PDF • 5 Mo max</p>
+              </div>
+              <button onClick={() => { setVerificationStatus('pending'); showToast('✅ Pièce d\'identité soumise !'); }} className="btn btn-primary btn-block btn-lg">Soumettre pour vérification</button>
+            </>
+          )}
         </div>
       </div>
     );
@@ -203,25 +272,59 @@ function ProducteurProfilContent() {
             </div>
             
             <div style={{ flex: 1, padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ alignSelf: 'flex-start', background: 'var(--surface)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '12px 12px 12px 0', maxWidth: '80%' }}>
-                <p style={{ fontSize: 14 }}>Bonjour, je voudrais savoir si vos mangues Kent sont toujours disponibles ?</p>
-                <p style={{ fontSize: 10, color: 'var(--text-light)', marginTop: 4, textAlign: 'right' }}>10:42</p>
-              </div>
-              <div style={{ alignSelf: 'flex-start', background: 'var(--surface)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '12px 12px 12px 0', maxWidth: '80%' }}>
-                <p style={{ fontSize: 14 }}>Je voudrais commander 5 kg de mangues.</p>
-                <p style={{ fontSize: 10, color: 'var(--text-light)', marginTop: 4, textAlign: 'right' }}>10:43</p>
-              </div>
+              {chatMessages.map(msg => (
+                <div key={msg.id} style={{ alignSelf: msg.from === 'me' ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
+                  {msg.voice ? (
+                    <div style={{ background: msg.from === 'me' ? 'var(--primary)' : 'var(--surface)', border: msg.from === 'me' ? 'none' : '1px solid var(--border)', padding: '10px 14px', borderRadius: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <button style={{ width: 32, height: 32, borderRadius: '50%', background: msg.from === 'me' ? 'rgba(255,255,255,0.2)' : 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' }}>
+                        <Play size={14} color={msg.from === 'me' ? '#fff' : 'var(--primary)'} />
+                      </button>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                          {[...Array(20)].map((_, i) => <div key={i} style={{ width: 3, height: Math.random() * 16 + 4, background: msg.from === 'me' ? 'rgba(255,255,255,0.5)' : 'var(--primary)', borderRadius: 2, opacity: 0.6 + Math.random() * 0.4 }} />)}
+                        </div>
+                      </div>
+                      <span style={{ fontSize: 10, color: msg.from === 'me' ? 'rgba(255,255,255,0.7)' : 'var(--text-light)' }}>{msg.voice.duration}s</span>
+                    </div>
+                  ) : (
+                    <div style={{ background: msg.from === 'me' ? 'var(--primary)' : 'var(--surface)', border: msg.from === 'me' ? 'none' : '1px solid var(--border)', padding: '10px 14px', borderRadius: msg.from === 'me' ? '12px 12px 0 12px' : '12px 12px 12px 0', color: msg.from === 'me' ? '#fff' : 'var(--text)' }}>
+                      <p style={{ fontSize: 14 }}>{msg.text}</p>
+                    </div>
+                  )}
+                  <p style={{ fontSize: 10, color: 'var(--text-light)', marginTop: 2, textAlign: msg.from === 'me' ? 'right' : 'left' }}>{msg.time}</p>
+                </div>
+              ))}
             </div>
 
+            {/* Recording indicator */}
+            {isRecording && (
+              <div style={{ background: '#FEF2F2', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid #FECACA' }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#EF4444', animation: 'pulse 1s ease infinite' }} />
+                <span style={{ fontSize: 13, color: '#EF4444', fontWeight: 600, flex: 1 }}>Enregistrement en cours...</span>
+                <button onClick={() => {
+                  setIsRecording(false);
+                  const newMsg = { id: Date.now().toString(), from: 'me' as const, voice: { duration: Math.floor(Math.random() * 10) + 3 }, time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) };
+                  setChatMessages(prev => [...prev, newMsg]);
+                  showToast('🎤 Message vocal envoyé');
+                }} style={{ padding: '6px 12px', background: '#EF4444', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 12, border: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Square size={12} /> Arrêter
+                </button>
+              </div>
+            )}
+
             <div style={{ background: 'var(--surface)', padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', gap: 10 }}>
+              <button onClick={() => setIsRecording(true)} style={{ width: 44, height: 44, borderRadius: '50%', background: isRecording ? '#FEF2F2' : '#F3F4F6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isRecording ? '#EF4444' : 'var(--text-secondary)' }}>
+                <Mic size={20} />
+              </button>
               <input 
                 value={chatMsg}
                 onChange={e => setChatMsg(e.target.value)}
                 placeholder="Écrivez un message..." 
+                onKeyDown={e => { if (e.key === 'Enter' && chatMsg.trim()) { setChatMessages(prev => [...prev, { id: Date.now().toString(), from: 'me', text: chatMsg, time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }]); setChatMsg(''); } }}
                 style={{ flex: 1, padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: 20, fontSize: 14, outline: 'none' }} 
               />
               <button 
-                onClick={() => { if(chatMsg.trim()){ alert('Message envoyé !'); setChatMsg(''); } }}
+                onClick={() => { if(chatMsg.trim()){ setChatMessages(prev => [...prev, { id: Date.now().toString(), from: 'me', text: chatMsg, time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }]); setChatMsg(''); } }}
                 style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Send size={18} style={{ marginLeft: -2 }} />
               </button>
@@ -261,6 +364,7 @@ function ProducteurProfilContent() {
     { label: 'Moyens de paiement', icon: <CreditCard size={20} />, bg: '#FFF7ED', color: '#F97316', action: () => setPanel('paiement') },
     { label: 'Adresses de livraison', icon: <Truck size={20} />, bg: '#EFF6FF', color: '#3B82F6', action: () => setPanel('adresses') },
     { label: 'Sécurité', icon: <Lock size={20} />, bg: '#FEF2F2', color: '#EF4444', action: () => setPanel('securite') },
+    { label: 'Vérification', icon: <ShieldCheck size={20} />, bg: '#F0FDF4', color: '#22C55E', action: () => setPanel('verification') },
   ];
 
   const activityMenu = [
@@ -302,13 +406,20 @@ function ProducteurProfilContent() {
           {[
             { icon: <MapPin size={16} />, label: `${producer.city}, Sénégal` },
             { icon: <span>📐</span>, label: producer.farmSize },
-            { icon: <span>🌿</span>, label: `Spécialités : ${producer.specialties.join(', ')}` },
           ].map((item, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: i < 2 ? '1px solid var(--border)' : 'none', fontSize: 14, color: 'var(--text)' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--border)', fontSize: 14, color: 'var(--text)' }}>
               <span style={{ color: 'var(--text-secondary)' }}>{item.icon}</span>
               {item.label}
             </div>
           ))}
+          <div style={{ padding: '10px 0' }}>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>🌿 Spécialités</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {selectedSpecialties.map(s => (
+                <span key={s} style={{ padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 600, background: 'var(--primary-light)', color: 'var(--primary)' }}>{s}</span>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Mon compte */}

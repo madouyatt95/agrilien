@@ -6,22 +6,23 @@ import { ChevronLeft, MapPin, Users, Star, ShieldCheck, Phone, Navigation, Radio
 import { allProducers } from '@/data/mock-users';
 import { getCurrentLocation } from '@/lib/utils';
 import LocationAutocomplete from '@/components/ui/LocationAutocomplete';
+import LeafletMap from '@/components/ui/LeafletMap';
 
 const regions = [
-  { id: 'dakar', name: 'Dakar', x: 58, y: 145, producers: 12, products: 45, specialties: ['Maraîchage', 'Transformation'] },
-  { id: 'thies', name: 'Thiès', x: 95, y: 148, producers: 18, products: 62, specialties: ['Oignons', 'Tubercules'] },
-  { id: 'saint-louis', name: 'Saint-Louis', x: 100, y: 55, producers: 8, products: 30, specialties: ['Riz', 'Tomates', 'Chou'] },
-  { id: 'fatick', name: 'Fatick', x: 125, y: 175, producers: 10, products: 35, specialties: ['Riz', 'Céréales'] },
-  { id: 'kaolack', name: 'Kaolack', x: 155, y: 170, producers: 15, products: 50, specialties: ['Mil', 'Arachide'] },
-  { id: 'kolda', name: 'Kolda', x: 175, y: 235, producers: 22, products: 78, specialties: ['Mangues', 'Fruits', 'Lait'] },
-  { id: 'ziguinchor', name: 'Ziguinchor', x: 115, y: 245, producers: 14, products: 42, specialties: ['Miel', 'Volaille', 'Fruits'] },
-  { id: 'tambacounda', name: 'Tamba', x: 260, y: 185, producers: 6, products: 20, specialties: ['Bétail', 'Céréales'] },
-  { id: 'kedougou', name: 'Kédougou', x: 300, y: 225, producers: 4, products: 12, specialties: ['Fruits sauvages'] },
-  { id: 'matam', name: 'Matam', x: 235, y: 85, producers: 7, products: 25, specialties: ['Riz', 'Bétail'] },
-  { id: 'louga', name: 'Louga', x: 115, y: 95, producers: 9, products: 28, specialties: ['Arachide', 'Bétail'] },
-  { id: 'diourbel', name: 'Diourbel', x: 128, y: 140, producers: 11, products: 38, specialties: ['Arachide', 'Mil'] },
-  { id: 'kaffrine', name: 'Kaffrine', x: 195, y: 160, producers: 8, products: 22, specialties: ['Céréales', 'Coton'] },
-  { id: 'sedhiou', name: 'Sédhiou', x: 145, y: 240, producers: 5, products: 15, specialties: ['Anacarde', 'Fruits'] },
+  { id: 'dakar', name: 'Dakar', lat: 14.6928, lng: -17.4467, producers: 12, products: 45, specialties: ['Maraîchage', 'Transformation'] },
+  { id: 'thies', name: 'Thiès', lat: 14.7928, lng: -16.9260, producers: 18, products: 62, specialties: ['Oignons', 'Tubercules'] },
+  { id: 'saint-louis', name: 'Saint-Louis', lat: 16.0333, lng: -16.5000, producers: 8, products: 30, specialties: ['Riz', 'Tomates', 'Chou'] },
+  { id: 'fatick', name: 'Fatick', lat: 14.3581, lng: -16.4056, producers: 10, products: 35, specialties: ['Riz', 'Céréales'] },
+  { id: 'kaolack', name: 'Kaolack', lat: 14.1667, lng: -16.0667, producers: 15, products: 50, specialties: ['Mil', 'Arachide'] },
+  { id: 'kolda', name: 'Kolda', lat: 12.8833, lng: -14.9500, producers: 22, products: 78, specialties: ['Mangues', 'Fruits', 'Lait'] },
+  { id: 'ziguinchor', name: 'Ziguinchor', lat: 12.5833, lng: -16.2667, producers: 14, products: 42, specialties: ['Miel', 'Volaille', 'Fruits'] },
+  { id: 'tambacounda', name: 'Tamba', lat: 13.7667, lng: -13.6667, producers: 6, products: 20, specialties: ['Bétail', 'Céréales'] },
+  { id: 'kedougou', name: 'Kédougou', lat: 12.5500, lng: -12.1833, producers: 4, products: 12, specialties: ['Fruits sauvages'] },
+  { id: 'matam', name: 'Matam', lat: 15.6500, lng: -13.2500, producers: 7, products: 25, specialties: ['Riz', 'Bétail'] },
+  { id: 'louga', name: 'Louga', lat: 15.6167, lng: -16.2167, producers: 9, products: 28, specialties: ['Arachide', 'Bétail'] },
+  { id: 'diourbel', name: 'Diourbel', lat: 14.6500, lng: -16.2333, producers: 11, products: 38, specialties: ['Arachide', 'Mil'] },
+  { id: 'kaffrine', name: 'Kaffrine', lat: 14.1167, lng: -15.5500, producers: 8, products: 22, specialties: ['Céréales', 'Coton'] },
+  { id: 'sedhiou', name: 'Sédhiou', lat: 12.7000, lng: -15.5500, producers: 5, products: 15, specialties: ['Anacarde', 'Fruits'] },
 ];
 
 // Map region name to SVG coordinates for producer pins
@@ -37,6 +38,8 @@ export default function CartePage() {
   const [view, setView] = useState<View>('carte');
   const [radarMode, setRadarMode] = useState(false);
   const [radarDetections, setRadarDetections] = useState<{name: string, type: string, distance: string}[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const toggleRadar = () => {
     if (radarMode) {
@@ -60,12 +63,12 @@ export default function CartePage() {
   const handleLocateMe = async () => {
     try {
       const city = await getCurrentLocation();
-      alert(`📍 Vrai GPS détecté : Vous êtes à ${city}. L'affichage a été centré.`);
+      showToast(`📍 Vrai GPS détecté : Vous êtes à ${city}. L'affichage a été centré.`);
       // Match with known regions if possible
       const foundRegion = regions.find(r => city.toLowerCase().includes(r.name.toLowerCase()));
       if (foundRegion) setSelected(foundRegion);
     } catch (error: any) {
-      alert(`Impossible d'obtenir la position GPS: ${error.message}`);
+      showToast(`⚠️ Impossible d'obtenir la position GPS: ${error.message}`);
     }
   };
 
@@ -164,67 +167,16 @@ export default function CartePage() {
 
       {view === 'carte' && (
         <>
-          {/* Map SVG */}
-          <div style={{ padding: '0 20px', marginBottom: 16 }}>
-            <div style={{ borderRadius: 20, overflow: 'hidden', background: 'linear-gradient(180deg, #E0F2FE 0%, #BAE6FD 30%, #7DD3FC 100%)', padding: 2 }}>
-              <div style={{ borderRadius: 18, overflow: 'hidden', position: 'relative' }}>
-                <svg viewBox="0 0 380 300" style={{ width: '100%', height: 'auto', display: 'block' }}>
-                  {/* Ocean texture */}
-                  <rect width="380" height="300" fill="url(#oceanGrad)" />
-                  <defs>
-                    <linearGradient id="oceanGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#BFDBFE" />
-                      <stop offset="100%" stopColor="#93C5FD" />
-                    </linearGradient>
-                    <linearGradient id="landGrad" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#D1FAE5" />
-                      <stop offset="100%" stopColor="#A7F3D0" />
-                    </linearGradient>
-                    <filter id="shadow">
-                      <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.15" />
-                    </filter>
-                  </defs>
-
-                  {/* Contour du Sénégal with gradient */}
-                  <path d="M50,130 L55,100 L75,70 L100,45 L130,35 L165,38 L210,50 L245,65 L280,80 L320,105 L340,140 L345,175 L335,200 L310,230 L280,245 L250,250 L220,255 L190,260 L160,265 L135,260 L110,255 L90,250 L80,240 L65,225 L55,210 L45,185 L42,160 L50,130Z"
-                    fill="url(#landGrad)" stroke="#059669" strokeWidth="1.5" filter="url(#shadow)" />
-
-                  {/* Gambie */}
-                  <path d="M65,195 L95,192 L130,190 L165,192 L195,195 L195,205 L165,207 L130,210 L95,208 L65,205Z"
-                    fill="#FEF3C7" stroke="#D97706" strokeWidth="0.8" />
-                  <text x="130" y="202" textAnchor="middle" fontSize="7" fill="#92400E" fontWeight="600">Gambie</text>
-
-                  {/* Fleuve Sénégal (north border) */}
-                  <path d="M50,130 L75,70 L100,45 L130,35 L165,38 L210,50 L245,65" fill="none" stroke="#60A5FA" strokeWidth="1.5" strokeDasharray="4 2" opacity="0.6" />
-
-                  {/* Océan label */}
-                  <text x="25" y="170" fontSize="8" fill="#3B82F6" fontWeight="600" opacity="0.5" transform="rotate(-90, 25, 170)">OCÉAN ATLANTIQUE</text>
-
-                  {/* Region dots */}
-                  {regions.map(r => {
-                    const regionProducers = getProducersForRegion(r.name);
-                    const hasProducers = regionProducers.length > 0;
-                    const dotSize = Math.max(7, Math.min(12, r.producers / 2));
-                    return (
-                      <g key={r.id} onClick={() => { setSelected(r); setSelectedProducer(null); }} style={{ cursor: 'pointer' }}>
-                        {hasProducers && (
-                          <circle cx={r.x} cy={r.y} r={dotSize + 8} fill="var(--primary)" opacity="0.1">
-                            <animate attributeName="r" values={`${dotSize + 4};${dotSize + 12};${dotSize + 4}`} dur="2.5s" repeatCount="indefinite" />
-                            <animate attributeName="opacity" values="0.15;0.03;0.15" dur="2.5s" repeatCount="indefinite" />
-                          </circle>
-                        )}
-                        <circle cx={r.x} cy={r.y} r={dotSize}
-                          fill={selected?.id === r.id ? '#F59E0B' : hasProducers ? '#059669' : '#D1D5DB'}
-                          stroke="#fff" strokeWidth="2.5" filter="url(#shadow)" />
-                        <text x={r.x} y={r.y + dotSize + 12} textAnchor="middle"
-                          fontSize="9" fontWeight="700" fill="#1F2937">{r.name}</text>
-                        <text x={r.x} y={r.y + dotSize + 21} textAnchor="middle"
-                          fontSize="7" fill="#6B7280">{r.producers} prod.</text>
-                      </g>
-                    );
-                  })}
-                </svg>
-              </div>
+          {/* Map Interactive Leaflet */}
+          <div style={{ padding: '0 20px', marginBottom: 16, height: 400 }}>
+            <div style={{ borderRadius: 20, overflow: 'hidden', border: '2px solid var(--border)', height: '100%', position: 'relative', zIndex: 10 }}>
+              <LeafletMap 
+                markers={regions.map(r => ({ id: r.id, name: r.name, lat: r.lat, lng: r.lng, producers: r.producers, specialties: r.specialties }))} 
+                onMarkerClick={(m) => {
+                  const reg = regions.find(r => r.id === m.id);
+                  if (reg) { setSelected(reg); setSelectedProducer(null); }
+                }} 
+              />
             </div>
           </div>
 
@@ -260,8 +212,8 @@ export default function CartePage() {
                     <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={() => router.push(`/acheteur/producteur/${selectedProducer.id}`)}>
                       Voir les produits
                     </button>
-                    <button className="btn btn-outline btn-sm" style={{ padding: '8px 12px' }} onClick={() => alert('Appel vers ' + selectedProducer.phone)}>
-                      <Phone size={16} />
+                    <button className="btn btn-outline btn-sm" style={{ padding: '8px 12px' }} onClick={() => showToast('📞 Appel vers ' + selectedProducer.phone)}>
+                      <Phone size={14} /> Contacter
                     </button>
                   </div>
                 </div>
@@ -384,7 +336,13 @@ export default function CartePage() {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
+        }
       `}} />
+
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
+      )}
     </div>
   );
 }

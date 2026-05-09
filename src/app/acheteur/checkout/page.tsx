@@ -17,6 +17,8 @@ export default function CheckoutPage() {
   const [confirmCode, setConfirmCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [orderId] = useState(`CMD-${Date.now().toString().slice(-4)}`);
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const deliveryFee = cartTotal >= 5000 ? 0 : 1000;
   const total = cartTotal + deliveryFee;
@@ -29,11 +31,11 @@ export default function CheckoutPage() {
   const handleLocateMe = async () => {
     try {
       const city = await getCurrentLocation();
-      alert(`📍 Vrai GPS détecté : Vous êtes à ${city}. L'adresse a été ajoutée.`);
+      showToast(`📍 Vrai GPS détecté : Vous êtes à ${city}. L'adresse a été ajoutée.`);
       setAddresses([...addresses, { label: '📍 Position Actuelle', detail: city, default: false }]);
       setSelectedAddress(addresses.length);
     } catch (error: any) {
-      alert(`Impossible d'obtenir la position GPS: ${error.message}`);
+      showToast(`⚠️ Impossible d'obtenir la position GPS: ${error.message}`);
     }
   };
 
@@ -267,6 +269,11 @@ export default function CheckoutPage() {
             {loading ? '⏳ Traitement en cours...' : '✓ Confirmer le paiement'}
           </button>
         </div>
+      )}
+
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
       )}
     </div>
   );

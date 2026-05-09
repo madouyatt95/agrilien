@@ -20,6 +20,8 @@ export default function RegisterPage() {
     department: '',
   });
   const [locating, setLocating] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const handleLocateMe = async () => {
     setLocating(true);
@@ -30,9 +32,9 @@ export default function RegisterPage() {
       if (matched) {
         setFormData({ ...formData, region: matched, department: '' });
       }
-      alert(`📍 Position détectée : ${city}`);
+      showToast(`📍 Position détectée : ${city}`);
     } catch (err: any) {
-      alert(`Erreur GPS : ${err.message}`);
+      showToast(`⚠️ Erreur GPS : ${err.message}`);
     } finally {
       setLocating(false);
     }
@@ -339,6 +341,11 @@ export default function RegisterPage() {
         )}
 
       </div>
+
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
+      )}
     </div>
   );
 }

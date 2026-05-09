@@ -12,6 +12,8 @@ import LocationAutocomplete from '@/components/ui/LocationAutocomplete';
 
 function RechercheContent() {
   const router = useRouter();
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
   const { regionNames } = useGalsenRegions();
   const regions = ['Toutes', ...regionNames];
   const searchParams = useSearchParams();
@@ -63,10 +65,10 @@ function RechercheContent() {
   const handleLocateMe = async () => {
     try {
       const city = await getCurrentLocation();
-      alert(`📍 Vrai GPS détecté : ${city}. Le filtre a été appliqué.`);
+      showToast(`📍 Vrai GPS détecté : ${city}. Le filtre a été appliqué.`);
       setSelectedRegion(city); // Fallback: custom text if not in regions list, but UI will show it!
     } catch (error: any) {
-      alert(`Impossible d'obtenir la position GPS: ${error.message}`);
+      showToast(`⚠️ Impossible d'obtenir la position GPS: ${error.message}`);
     }
   };
 
@@ -230,6 +232,10 @@ function RechercheContent() {
           </div>
         )}
       </div>
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
+      )}
     </div>
   );
 }

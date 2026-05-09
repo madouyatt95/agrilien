@@ -8,6 +8,9 @@ import { Search, Eye, Download, Truck } from 'lucide-react';
 export default function AdminCommandesPage() {
   const [ordersList, setOrdersList] = useState(initialOrders);
 
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
   const handleUpdateStatus = (id: string, currentStatus: string) => {
     let nextStatus = currentStatus;
     if (currentStatus === 'en_attente') nextStatus = 'expediee';
@@ -18,7 +21,7 @@ export default function AdminCommandesPage() {
         setOrdersList(ordersList.map(o => o.id === id ? { ...o, status: nextStatus as any } : o));
       }
     } else {
-      alert("La commande est déjà livrée.");
+      showToast("✅ La commande est déjà livrée.");
     }
   };
 
@@ -42,10 +45,10 @@ export default function AdminCommandesPage() {
                 <td style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{formatRelativeTime(o.createdAt)}</td>
                 <td>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => alert(`Détails de la commande ${o.orderNumber}`)} style={{ color: '#6366F1', background: '#EEF2FF', padding: 6, borderRadius: 6 }} title="Voir">
+                    <button onClick={() => showToast(`👁️ Détails de la commande ${o.orderNumber}`)} style={{ color: '#6366F1', background: '#EEF2FF', padding: 6, borderRadius: 6 }} title="Voir">
                       <Eye size={16} />
                     </button>
-                    <button onClick={() => alert(`Téléchargement de la facture pour ${o.orderNumber}`)} style={{ color: '#10B981', background: '#D1FAE5', padding: 6, borderRadius: 6 }} title="Facture">
+                    <button onClick={() => showToast(`📥 Téléchargement de la facture pour ${o.orderNumber}`)} style={{ color: '#10B981', background: '#D1FAE5', padding: 6, borderRadius: 6 }} title="Facture">
                       <Download size={16} />
                     </button>
                     {o.status !== 'livree' && (
@@ -60,6 +63,10 @@ export default function AdminCommandesPage() {
           </tbody>
         </table>
       </div>
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 30, right: 30, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
+      )}
     </div>
   );
 }

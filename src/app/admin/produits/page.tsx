@@ -8,10 +8,13 @@ import { Search, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 export default function AdminProduitsPage() {
   const [productsList, setProductsList] = useState(initialProducts);
 
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
   const handleDelete = (id: string, name: string) => {
     if (confirm(`Êtes-vous sûr de vouloir supprimer le produit "${name}" ?`)) {
       setProductsList(productsList.filter(p => p.id !== id));
-      alert(`Produit ${name} supprimé avec succès.`);
+      showToast(`Produit ${name} supprimé avec succès.`);
     }
   };
 
@@ -46,7 +49,7 @@ export default function AdminProduitsPage() {
                 <td><span className="badge" style={{ background: getStatusBgColor(p.status), color: getStatusColor(p.status) }}>{getStatusLabel(p.status)}</span></td>
                 <td>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => alert(`Édition du produit: ${p.name}`)} style={{ color: '#3B82F6', background: '#EFF6FF', padding: 6, borderRadius: 6 }} title="Modifier">
+                    <button onClick={() => showToast(`✏️ Édition du produit: ${p.name}`)} style={{ color: '#3B82F6', background: '#EFF6FF', padding: 6, borderRadius: 6 }} title="Modifier">
                       <Edit size={16} />
                     </button>
                     <button onClick={() => handleToggleStatus(p.id, p.status)} style={{ color: p.status === 'en_vente' ? '#F59E0B' : '#10B981', background: p.status === 'en_vente' ? '#FEF3C7' : '#D1FAE5', padding: 6, borderRadius: 6 }} title={p.status === 'en_vente' ? "Mettre en rupture" : "Rendre disponible"}>
@@ -62,6 +65,10 @@ export default function AdminProduitsPage() {
           </tbody>
         </table>
       </div>
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 30, right: 30, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
+      )}
     </div>
   );
 }

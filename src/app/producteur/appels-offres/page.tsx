@@ -10,6 +10,8 @@ export default function AppelsOffresProducteurPage() {
   const router = useRouter();
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
   const [bidSent, setBidSent] = useState<string[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const [tenders] = useState<Tender[]>([
     {
@@ -38,6 +40,7 @@ export default function AppelsOffresProducteurPage() {
   const handleBid = (tenderId: string) => {
     setBidSent(prev => [...prev, tenderId]);
     setSelectedTender(null);
+    showToast('✅ Votre offre a été envoyée avec succès à l\'acheteur.');
   };
 
   return (
@@ -122,7 +125,7 @@ export default function AppelsOffresProducteurPage() {
       {/* Modal Soumission */}
       {selectedTender && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }}>
-          <div style={{ background: 'var(--bg)', width: '100%', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: '24px 24px 40px' }}>
+          <div style={{ background: 'var(--bg)', width: '100%', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: '24px 24px 40px', maxHeight: '85vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>Soumissionner</h2>
               <button onClick={() => setSelectedTender(null)} style={{ background: 'var(--surface)', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -141,17 +144,21 @@ export default function AppelsOffresProducteurPage() {
             <form onSubmit={e => { e.preventDefault(); handleBid(selectedTender.id); }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Mon prix / {selectedTender.unit}</label>
-                  <input required type="number" placeholder="Ex: 400" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)' }} />
+                  <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Prix proposé (FCFA)</label>
+                  <input required type="number" placeholder={`Max: ${Math.round(selectedTender.maxBudget / selectedTender.quantity)}`} style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Qté disponible ({selectedTender.unit})</label>
+                  <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Quantité disponible</label>
                   <input required type="number" placeholder={`Max: ${selectedTender.quantity}`} style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)' }} />
                 </div>
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Message à l&apos;acheteur</label>
-                <textarea placeholder="Présentez votre offre, qualité, délais..." rows={3} style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', resize: 'none' }} />
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Délai de livraison</label>
+                <input required placeholder="Ex: Livrable en 48h" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Commentaire libre</label>
+                <textarea placeholder="Précisez la qualité, le transport..." rows={3} style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', resize: 'none' }} />
               </div>
               <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ background: '#7C3AED', borderColor: '#7C3AED' }}>
                 <Send size={18} style={{ marginRight: 6 }} /> Envoyer mon offre
@@ -159,6 +166,11 @@ export default function AppelsOffresProducteurPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
       )}
     </div>
   );

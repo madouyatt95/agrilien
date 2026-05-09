@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { producerMonthlyStats } from '@/data/mock-orders';
 import { orders } from '@/data/mock-orders';
-import { Bell, Eye, EyeOff, ArrowDownCircle, CloudRain, Sun, TrendingUp, TrendingDown, Users, Truck, Gavel, MapPin, Navigation } from 'lucide-react';
+import { Bell, Eye, EyeOff, ArrowDownCircle, CloudRain, Sun, TrendingUp, TrendingDown, Users, Truck, Gavel, MapPin, Navigation, Camera, X, Image as ImageIcon } from 'lucide-react';
 import { formatPrice, getStatusLabel, getStatusColor, getStatusBgColor, formatRelativeTime, getCurrentLocation } from '@/lib/utils';
 import { useState } from 'react';
 import AgriLienLogo from '@/components/ui/Logo';
@@ -18,6 +18,10 @@ export default function ProducteurDashboard() {
   const { regionNames, loading: regionsLoading } = useGalsenRegions();
   const [selectedRegion, setSelectedRegion] = useState(user?.region || 'Kolda');
   const [locating, setLocating] = useState(false);
+  const [showStoryModal, setShowStoryModal] = useState(false);
+  const [storyCaption, setStoryCaption] = useState('');
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
   const stats = producerMonthlyStats;
   const { weather, loading: weatherLoading } = useWeather(selectedRegion);
 
@@ -29,10 +33,17 @@ export default function ProducteurDashboard() {
       if (matched) setSelectedRegion(matched);
       else setSelectedRegion(city);
     } catch (err: any) {
-      alert(`Erreur GPS : ${err.message}`);
+      showToast(`⚠️ Erreur GPS : ${err.message}`);
     } finally {
       setLocating(false);
     }
+  };
+
+  const handleCreateStory = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowStoryModal(false);
+    setStoryCaption('');
+    showToast('🎥 Story publiée ! Visible par les acheteurs pendant 24h');
   };
 
   return (
@@ -59,6 +70,17 @@ export default function ProducteurDashboard() {
             <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Voici ce qui se passe aujourd&apos;hui sur votre activité.</p>
           </div>
         </div>
+
+        {/* Bouton Créer une Story */}
+        <button onClick={() => setShowStoryModal(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'linear-gradient(135deg, #7C3AED, #A855F7)', borderRadius: 14, color: '#fff', fontWeight: 700, fontSize: 14, marginBottom: 20, border: 'none', boxShadow: '0 4px 12px rgba(124, 58, 237, 0.25)' }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Camera size={20} />
+          </div>
+          <div style={{ flex: 1, textAlign: 'left' }}>
+            <p style={{ fontSize: 14, fontWeight: 700 }}>🎥 Créer une Story</p>
+            <p style={{ fontSize: 11, opacity: 0.8, fontWeight: 400 }}>Visible par les acheteurs pendant 24h</p>
+          </div>
+        </button>
 
         {/* Balance Card — vert comme la capture */}
         <div style={{ background: 'var(--primary)', borderRadius: 16, padding: '20px 24px', marginBottom: 24, color: '#fff' }}>
@@ -342,6 +364,36 @@ export default function ProducteurDashboard() {
           </div>
         ))}
       </div>
+
+      {/* MODALE CRÉER UNE STORY */}
+      {showStoryModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowStoryModal(false)}>
+          <div style={{ background: 'var(--surface)', width: '100%', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700 }}>📸 Créer une Story</h2>
+              <button onClick={() => setShowStoryModal(false)} style={{ background: 'var(--bg)', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={20} /></button>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>Partagez un moment de votre exploitation avec les acheteurs. La story reste visible pendant 24h.</p>
+            <form onSubmit={handleCreateStory} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ border: '2px dashed var(--border)', borderRadius: 16, padding: 32, textAlign: 'center', cursor: 'pointer' }}>
+                <ImageIcon size={40} color="var(--text-light)" style={{ marginBottom: 8 }} />
+                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)' }}>Ajouter une photo ou vidéo</p>
+                <p style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 4 }}>JPG, PNG, MP4 • 10 Mo max</p>
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Légende (optionnelle)</label>
+                <input value={storyCaption} onChange={e => setStoryCaption(e.target.value)} placeholder="Ex: Récolte du jour 🌾" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)' }} />
+              </div>
+              <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ background: '#7C3AED', borderColor: '#7C3AED' }}>Publier la Story</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
+      )}
     </div>
   );
 }

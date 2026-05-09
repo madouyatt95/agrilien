@@ -17,6 +17,8 @@ const notificationsData = [
 export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState(notificationsData);
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -35,7 +37,7 @@ export default function NotificationsPage() {
         {notifications.map(n => {
           const Icon = n.icon;
           return (
-            <button key={n.id} className="card" onClick={() => { markRead(n.id); if (n.type === 'message') alert('Ouverture du message de ' + n.desc.split(':')[0]); }}
+            <button key={n.id} className="card" onClick={() => { markRead(n.id); if (n.type === 'message') showToast('💬 Messagerie avec ' + n.desc.split(':')[0] + ' bientôt disponible'); }}
               style={{ display: 'flex', gap: 14, padding: 16, marginBottom: 8, width: '100%', textAlign: 'left', borderLeft: n.read ? 'none' : `3px solid ${n.color}`, opacity: n.read ? 0.7 : 1 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: `${n.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon size={18} color={n.color} />
@@ -52,6 +54,11 @@ export default function NotificationsPage() {
           );
         })}
       </div>
+
+      {/* TOAST */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 100, left: 20, right: 20, background: '#18181B', color: '#fff', padding: 16, borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 1000, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{toast}</div>
+      )}
     </div>
   );
 }
