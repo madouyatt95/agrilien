@@ -42,6 +42,9 @@ export default function MesProduitsPage() {
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [showSuggestModal, setShowSuggestModal] = useState(false);
+  const [suggestForm, setSuggestForm] = useState({ name: '', category: '', description: '', comment: '' });
   
   const [showFlashModal, setShowFlashModal] = useState<Product | null>(null);
   const [flashModalData, setFlashModalData] = useState({ promoPrice: '', quantity: '' });
@@ -100,6 +103,22 @@ export default function MesProduitsPage() {
     }, 3000);
   };
 
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      categoryId: globalCategories.find(c => c.name === product.category)?.id || globalCategories[0].id,
+      customCategory: '',
+      description: product.description,
+      price: product.price.toString(),
+      unit: product.unit,
+      customUnit: '',
+      stock: product.stock.toString(),
+      quality: product.isOrganic ? 'Bio' : 'Standard',
+    });
+    setShowAddForm(true);
+  };
+
   const handleAddProduct = () => {
     if (!formData.name || !formData.price || !formData.stock) {
       showToast('⚠️ Veuillez remplir les champs obligatoires (Nom, Prix, Stock).');
@@ -108,37 +127,52 @@ export default function MesProduitsPage() {
     const finalCategoryName = formData.categoryId === 'autre' ? formData.customCategory : (globalCategories.find(c => c.id === formData.categoryId)?.name || '');
     const finalUnit = formData.unit === 'Autre' ? formData.customUnit : formData.unit;
 
-    const newProduct: Product = {
-      id: `prod-${Date.now()}`,
-      name: formData.name + (formData.quality === 'Bio' ? ' (Bio)' : ''),
-      producerId: 'producer-1',
-      producerName: 'Amadou Ba',
-      region: 'Kolda',
-      farmName: 'Ferme Ba',
-      city: 'Kolda',
-      price: Number(formData.price),
-      currency: 'FCFA',
-      unit: finalUnit,
-      rating: 0,
-      reviewCount: 0,
-      views: 0,
-      images: ['https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=500&auto=format&fit=crop'],
-      category: finalCategoryName,
-      description: formData.description || 'Description non fournie.',
-      stock: Number(formData.stock),
-      isAvailable: true,
-      isLowStock: false,
-      isOrganic: formData.quality === 'Bio',
-      delivery: true,
-      freeDelivery: false,
-      createdAt: new Date().toISOString(),
-      status: 'en_vente'
-    };
-
-    setLocalProducts([newProduct, ...localProducts]);
-    showToast('✅ Produit ajouté avec succès !');
+    if (editingProduct) {
+      // Update existing product
+      setLocalProducts(prev => prev.map(p => p.id === editingProduct.id ? {
+        ...p,
+        name: formData.name + (formData.quality === 'Bio' && !formData.name.includes('Bio') ? ' (Bio)' : ''),
+        price: Number(formData.price),
+        unit: finalUnit,
+        category: finalCategoryName,
+        description: formData.description || p.description,
+        stock: Number(formData.stock),
+        isOrganic: formData.quality === 'Bio',
+        status: Number(formData.stock) === 0 ? 'en_rupture' : 'en_vente',
+      } : p));
+      showToast('✅ Produit modifié avec succès !');
+    } else {
+      const newProduct: Product = {
+        id: `prod-${Date.now()}`,
+        name: formData.name + (formData.quality === 'Bio' ? ' (Bio)' : ''),
+        producerId: 'producer-1',
+        producerName: 'Amadou Ba',
+        region: 'Kolda',
+        farmName: 'Ferme Ba',
+        city: 'Kolda',
+        price: Number(formData.price),
+        currency: 'FCFA',
+        unit: finalUnit,
+        rating: 0,
+        reviewCount: 0,
+        views: 0,
+        images: ['https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=500&auto=format&fit=crop'],
+        category: finalCategoryName,
+        description: formData.description || 'Description non fournie.',
+        stock: Number(formData.stock),
+        isAvailable: true,
+        isLowStock: false,
+        isOrganic: formData.quality === 'Bio',
+        delivery: true,
+        freeDelivery: false,
+        createdAt: new Date().toISOString(),
+        status: 'en_vente'
+      };
+      setLocalProducts([newProduct, ...localProducts]);
+      showToast('✅ Produit ajouté avec succès !');
+    }
     setShowAddForm(false);
-    // Reset form
+    setEditingProduct(null);
     setFormData({
       name: '', categoryId: globalCategories[0].id, customCategory: '',
       description: '', price: '', unit: 'Kg', customUnit: '', stock: '', quality: 'Standard'
@@ -150,10 +184,10 @@ export default function MesProduitsPage() {
       {showAddForm ? (
         <div>
           <div className="page-header" style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', display: 'flex', alignItems: 'center' }}>
-            <button onClick={() => setShowAddForm(false)} style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', background: 'transparent', border: 'none' }}>
+            <button onClick={() => { setShowAddForm(false); setEditingProduct(null); }} style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', background: 'transparent', border: 'none' }}>
               <span style={{ fontSize: 24 }}>←</span>
             </button>
-            <h1 style={{ flex: 1, fontSize: 18, margin: 0 }}>Nouveau produit</h1>
+            <h1 style={{ flex: 1, fontSize: 18, margin: 0 }}>{editingProduct ? 'Modifier le produit' : 'Nouveau produit'}</h1>
             
             {/* BOUTON MICROPHONE */}
             <button 
@@ -196,7 +230,7 @@ export default function MesProduitsPage() {
                     </optgroup>
                   ))}
                 </select>
-                <button type="button" onClick={() => showToast('📩 Demande envoyée à l\'admin pour ajouter un nouveau produit')} style={{ marginTop: 8, fontSize: 12, color: '#3B82F6', fontWeight: 600, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>+ Suggérer un nouveau produit</button>
+                <button type="button" onClick={() => setShowSuggestModal(true)} style={{ marginTop: 8, fontSize: 12, color: '#3B82F6', fontWeight: 600, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>+ Suggérer un nouveau produit</button>
               </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Catégorie</label>
@@ -269,9 +303,9 @@ export default function MesProduitsPage() {
             </div>
 
             <button className="btn btn-primary btn-block" onClick={handleAddProduct}>
-              Mettre en vente
+              {editingProduct ? 'Enregistrer les modifications' : 'Mettre en vente'}
             </button>
-            <button className="btn btn-outline btn-block" style={{ marginTop: 12 }} onClick={() => setShowAddForm(false)}>
+            <button className="btn btn-outline btn-block" style={{ marginTop: 12 }} onClick={() => { setShowAddForm(false); setEditingProduct(null); }}>
               Annuler
             </button>
           </div>
@@ -355,7 +389,7 @@ export default function MesProduitsPage() {
                       >
                         <Zap size={14} fill="#EF4444" />
                       </button>
-                      <button style={{ padding: 6, background: 'var(--bg)', borderRadius: 8, color: 'var(--text-secondary)' }}>
+                      <button onClick={(e) => { e.stopPropagation(); handleEditProduct(product); }} style={{ padding: 6, background: 'var(--bg)', borderRadius: 8, color: 'var(--text-secondary)' }}>
                         <Edit2 size={16} />
                       </button>
                     </div>
@@ -436,6 +470,38 @@ export default function MesProduitsPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* MODALE SUGGESTION NOUVEAU PRODUIT */}
+      {showSuggestModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSuggestModal(false)}>
+          <div style={{ background: 'var(--surface)', width: '100%', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: '24px 24px 40px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700 }}>💡 Suggérer un produit</h2>
+              <button onClick={() => setShowSuggestModal(false)} style={{ background: 'var(--bg)', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', fontSize: 16 }}>✕</button>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>Ce produit n'est pas dans le catalogue ? Envoyez une demande à l'administrateur pour l'ajouter.</p>
+            <form onSubmit={e => { e.preventDefault(); setShowSuggestModal(false); setSuggestForm({ name: '', category: '', description: '', comment: '' }); showToast('📩 Suggestion envoyée ! L\'admin la validera sous 48h.'); }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Nom du produit <span style={{color:'#EF4444'}}>*</span></label>
+                <input required value={suggestForm.name} onChange={e => setSuggestForm({...suggestForm, name: e.target.value})} placeholder="Ex: Fonio blanc" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Catégorie suggérée <span style={{color:'#EF4444'}}>*</span></label>
+                <input required value={suggestForm.category} onChange={e => setSuggestForm({...suggestForm, category: e.target.value})} placeholder="Ex: Céréales" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Description du produit</label>
+                <textarea value={suggestForm.description} onChange={e => setSuggestForm({...suggestForm, description: e.target.value})} rows={3} placeholder="Décrivez le produit..." style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', resize: 'none' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Commentaire (optionnel)</label>
+                <textarea value={suggestForm.comment} onChange={e => setSuggestForm({...suggestForm, comment: e.target.value})} rows={2} placeholder="Informations complémentaires..." style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', resize: 'none' }} />
+              </div>
+              <button type="submit" className="btn btn-primary btn-block btn-lg">📩 Envoyer la suggestion</button>
+            </form>
+          </div>
+        </div>
       )}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes pulse {

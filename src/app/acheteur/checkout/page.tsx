@@ -139,6 +139,47 @@ export default function CheckoutPage() {
               <span>Total</span><span style={{ color: 'var(--primary)' }}>{formatPrice(total)}</span>
             </div>
           </div>
+
+          {/* ═══ SPLIT LIVRAISON INTELLIGENT ═══ */}
+          {(() => {
+            const producers = [...new Set(cart.map(item => item.product.producerName))];
+            if (producers.length > 1) {
+              const savings = Math.round(deliveryFee * 0.3);
+              return (
+                <div className="card" style={{ padding: 16, marginTop: 12, border: '1px solid #C6E7D4', background: 'var(--primary-light)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                    <Truck size={20} color="var(--primary)" />
+                    <div>
+                      <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--primary)' }}>Livraison optimisée</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Commande multi-producteurs détectée</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                    {producers.map((producer, i) => {
+                      const producerItems = cart.filter(item => item.product.producerName === producer);
+                      return (
+                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--surface)', borderRadius: 8 }}>
+                          <div>
+                            <p style={{ fontWeight: 600, fontSize: 13 }}>📦 {producer}</p>
+                            <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{producerItems.length} produit{producerItems.length > 1 ? 's' : ''}</p>
+                          </div>
+                          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{producerItems[0].product.city}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: '#F0FDF4', borderRadius: 8, border: '1px solid #BBF7D0' }}>
+                    <span style={{ fontSize: 14 }}>🚛</span>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#166534' }}>
+                      Transport mutualisé — Vous économisez {formatPrice(savings)} sur la livraison
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
           <button className="btn btn-primary btn-block" style={{ marginTop: 16 }} onClick={() => setStep('address')}>
             Choisir l&apos;adresse
           </button>

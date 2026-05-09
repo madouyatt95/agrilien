@@ -7,7 +7,7 @@ import { producerUser } from '@/data/mock-users';
 import { specialties as SPECIALTIES_LIST } from '@/data/product-catalog';
 import { Star, ShieldCheck, MapPin, ChevronRight, ChevronLeft, CreditCard, Truck, Lock, Settings, HelpCircle, LogOut, Edit, Bell, MessageCircle, BarChart3, Package, RefreshCw, Send, Mic, Square, Play, Pause, Upload, Clock } from 'lucide-react';
 
-type Panel = null | 'infos' | 'paiement' | 'adresses' | 'securite' | 'notifs' | 'messages' | 'verification';
+type Panel = null | 'infos' | 'paiement' | 'adresses' | 'securite' | 'notifs' | 'messages' | 'verification' | 'parametres' | 'aide';
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -407,6 +407,102 @@ function ProducteurProfilContent() {
     );
   }
 
+  // ═══ PANEL: Paramètres ═══
+  if (panel === 'parametres') {
+    const [darkMode, setDarkMode] = useState(false);
+    const [language, setLanguage] = useState('Français');
+    return (
+      <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
+        <div className="page-header">
+          <button onClick={() => setPanel(null)}><ChevronLeft size={24} /></button>
+          <h1>Paramètres</h1>
+          <div style={{ width: 24 }} />
+        </div>
+        <div style={{ padding: 20 }}>
+          <div className="card" style={{ padding: 16, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div>
+                <p style={{ fontWeight: 600, fontSize: 14 }}>🌙 Mode sombre</p>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Activer le thème sombre</p>
+              </div>
+              <button onClick={() => setDarkMode(!darkMode)} style={{ width: 48, height: 28, borderRadius: 14, background: darkMode ? 'var(--primary)' : '#D1D5DB', position: 'relative', border: 'none', transition: 'background 0.2s' }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: darkMode ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              </button>
+            </div>
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+              <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 8 }}>🌐 Langue</p>
+              <select value={language} onChange={e => setLanguage(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, background: 'var(--surface)' }}>
+                <option>Français</option>
+                <option>Wolof</option>
+                <option>Pulaar</option>
+                <option>English</option>
+              </select>
+            </div>
+          </div>
+          <div className="card" style={{ padding: 16, marginBottom: 12 }}>
+            <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>🗃️ Données et cache</p>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>Espace utilisé : 24 Mo</p>
+            <button className="btn btn-outline btn-sm" onClick={() => showToast('✅ Cache vidé avec succès')}>Vider le cache</button>
+          </div>
+          <div className="card" style={{ padding: 16 }}>
+            <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>ℹ️ Version de l'application</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>AgriLien v2.4.1 (Build 2026.05)</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══ PANEL: Centre d'aide ═══
+  if (panel === 'aide') {
+    const faqItems = [
+      { q: 'Comment ajouter un produit ?', a: 'Allez dans "Mes produits" puis cliquez sur le bouton + en haut à droite.' },
+      { q: 'Comment gérer mes commandes ?', a: 'Depuis "Mes commandes", cliquez sur une commande pour voir le détail et changer le statut.' },
+      { q: 'Comment retirer mes gains ?', a: 'Dans "Moyens de paiement", sélectionnez votre méthode et demandez un retrait.' },
+      { q: 'Comment me faire vérifier ?', a: 'Allez dans "Vérification" et soumettez votre pièce d\'identité (CNI).' },
+    ];
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
+    return (
+      <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
+        <div className="page-header">
+          <button onClick={() => setPanel(null)}><ChevronLeft size={24} /></button>
+          <h1>Centre d'aide</h1>
+          <div style={{ width: 24 }} />
+        </div>
+        <div style={{ padding: 20 }}>
+          <div className="card" style={{ padding: 20, marginBottom: 20, textAlign: 'center', background: 'var(--primary-light)' }}>
+            <span style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>💬</span>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>Besoin d'aide ?</h2>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>Notre équipe répond sous 24h</p>
+            <button className="btn btn-primary btn-block" onClick={() => showToast('📩 Message envoyé au support !')}>Contacter le support</button>
+          </div>
+
+          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>Questions fréquentes</h3>
+          {faqItems.map((item, i) => (
+            <div key={i} className="card" style={{ padding: 14, marginBottom: 8 }}>
+              <button onClick={() => setOpenFaq(openFaq === i ? null : i)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', background: 'none', border: 'none', textAlign: 'left' }}>
+                <span style={{ fontWeight: 600, fontSize: 14 }}>{item.q}</span>
+                <ChevronRight size={16} style={{ transform: openFaq === i ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+              </button>
+              {openFaq === i && <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 8, lineHeight: 1.5 }}>{item.a}</p>}
+            </div>
+          ))}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 16 }}>
+            <button className="card" onClick={() => showToast('📺 Tutoriel vidéo bientôt disponible')} style={{ padding: 16, textAlign: 'center', border: 'none', cursor: 'pointer' }}>
+              <span style={{ fontSize: 24, display: 'block', marginBottom: 4 }}>🎥</span>
+              <p style={{ fontWeight: 600, fontSize: 13 }}>Tutoriel vidéo</p>
+            </button>
+            <button className="card" onClick={() => showToast('🐛 Signalement envoyé')} style={{ padding: 16, textAlign: 'center', border: 'none', cursor: 'pointer' }}>
+              <span style={{ fontSize: 24, display: 'block', marginBottom: 4 }}>🐛</span>
+              <p style={{ fontWeight: 600, fontSize: 13 }}>Signaler un bug</p>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ═══ PAGE PROFIL PRINCIPALE ═══
   const accountMenu = [
     { label: 'Informations personnelles', icon: <Edit size={20} />, bg: '#EAF7EF', color: '#0B6B32', action: () => setPanel('infos') },
@@ -425,8 +521,8 @@ function ProducteurProfilContent() {
   ];
 
   const actionMenu = [
-    { label: 'Paramètres', icon: <Settings size={20} />, action: () => {} },
-    { label: "Centre d'aide", icon: <HelpCircle size={20} />, action: () => {} },
+    { label: 'Paramètres', icon: <Settings size={20} />, action: () => setPanel('parametres') },
+    { label: "Centre d'aide", icon: <HelpCircle size={20} />, action: () => setPanel('aide') },
   ];
 
   return (

@@ -344,6 +344,33 @@ export default function ProducteurDashboard() {
           </div>
         </div>
 
+        {/* ═══ ANTI-GASPILLAGE INTELLIGENT ═══ */}
+        <div className="card" style={{ padding: 16, marginBottom: 24, border: '1px solid #FECACA', background: '#FFF5F5' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🤖</div>
+            <div>
+              <p style={{ fontWeight: 700, fontSize: 14, color: '#DC2626' }}>Anti-Gaspillage IA</p>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Suggestions basées sur vos stocks</p>
+            </div>
+          </div>
+          {[
+            { product: 'Tomates Roma', reason: 'Stock élevé (120 Kg)', suggestion: 'Lancer une vente flash -30%', icon: '🍅', urgency: 'high' },
+            { product: 'Mangues Kent', reason: 'En saison depuis 3 semaines', suggestion: 'Proposer en lot groupé', icon: '🥭', urgency: 'medium' },
+          ].map((alert, i) => (
+            <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderTop: i > 0 ? '1px solid #FECACA' : 'none' }}>
+              <span style={{ fontSize: 24 }}>{alert.icon}</span>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: 600, fontSize: 13 }}>{alert.product}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{alert.reason}</p>
+                <p style={{ fontSize: 12, color: '#DC2626', fontWeight: 600, marginTop: 4 }}>💡 {alert.suggestion}</p>
+              </div>
+              <button onClick={() => router.push('/producteur/produits')} style={{ alignSelf: 'center', padding: '6px 12px', borderRadius: 8, background: '#DC2626', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none', whiteSpace: 'nowrap' }}>
+                Agir
+              </button>
+            </div>
+          ))}
+        </div>
+
         {/* Recent Orders — avec photos produits comme la capture */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700 }}>Commandes récentes</h3>

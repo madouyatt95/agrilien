@@ -145,7 +145,7 @@ export interface Order {
   subtotal: number;
   deliveryFee: number;
   total: number;
-  status: 'en_attente' | 'confirmee' | 'en_preparation' | 'livree' | 'annulee';
+  status: 'en_attente' | 'confirmee' | 'en_preparation' | 'expediee' | 'livree' | 'annulee';
   paymentMethod: string;
   deliveryAddress: string;
   createdAt: string;
