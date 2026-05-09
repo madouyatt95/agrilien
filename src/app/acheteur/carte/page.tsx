@@ -25,9 +25,7 @@ const regions = [
   { id: 'sedhiou', name: 'Sédhiou', lat: 12.7000, lng: -15.5500, producers: 5, products: 15, specialties: ['Anacarde', 'Fruits'] },
 ];
 
-// Map region name to SVG coordinates for producer pins
-const regionCoords: Record<string, { x: number; y: number }> = {};
-regions.forEach(r => { regionCoords[r.name] = { x: r.x, y: r.y }; });
+
 
 type View = 'carte' | 'liste';
 
