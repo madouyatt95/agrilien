@@ -60,30 +60,11 @@ ul, ol { list-style: none; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-light); }
 
 /* ── Bottom Navigation ── */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  height: var(--nav-height);
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-around;
-  z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.bottom-nav-item {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 8px 12px; color: var(--text-secondary); font-size: 11px;
-  font-weight: 500; transition: color 0.2s;
-  position: relative;
-}
-.bottom-nav-item.active { color: var(--primary); }
-.bottom-nav-item .nav-badge {
-  position: absolute; top: 2px; right: 4px;
-  background: var(--accent); color: #fff;
-  font-size: 10px; font-weight: 700;
-  min-width: 18px; height: 18px; border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 4px;
-}
+/* Bottom nav is now self-styled via the component (Floating Pill v2) */
+.bottom-nav { display: none; }
+.bottom-nav-item { display: none; }
+.bottom-nav-item.active { display: none; }
+.bottom-nav-item .nav-badge { display: none; }
 
 /* ── Page Container ── */
 .page { padding-bottom: calc(var(--nav-height) + 16px); min-height: 100vh; background: var(--bg); }
