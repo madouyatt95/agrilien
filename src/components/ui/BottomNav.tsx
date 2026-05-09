@@ -39,53 +39,50 @@ export default function BottomNav({ items }: { items: NavItem[] }) {
       <style dangerouslySetInnerHTML={{__html: `
         .bottom-nav-v2 {
           position: fixed; bottom: 0; left: 0; right: 0;
-          padding: 0 12px 10px;
-          padding-bottom: max(10px, env(safe-area-inset-bottom));
+          padding: 0 8px 6px;
+          padding-bottom: max(6px, env(safe-area-inset-bottom));
           z-index: 100;
           pointer-events: none;
         }
         .bottom-nav-inner {
-          background: rgba(15, 23, 42, 0.92);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 28px;
-          padding: 8px 6px;
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(22, 163, 74, 0.12);
+          border-radius: 20px;
+          padding: 6px 4px;
           display: flex;
           justify-content: space-around;
           align-items: center;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 0.5px rgba(255,255,255,0.05) inset;
+          box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0,0,0,0.04) inset;
           pointer-events: all;
         }
         .nav-v2-item {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 2px;
-          padding: 4px 10px;
-          color: #64748B;
+          gap: 1px;
+          padding: 4px 8px;
+          color: #94A3B8;
           text-decoration: none;
           position: relative;
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.2s ease;
         }
-        .nav-v2-item:active { transform: scale(0.85); }
-        .nav-v2-item.active { color: #fff; }
+        .nav-v2-item:active { transform: scale(0.9); }
+        .nav-v2-item.active { color: #16A34A; }
         .nav-v2-icon-wrap {
-          width: 36px; height: 36px;
-          border-radius: 14px;
+          width: 28px; height: 28px;
+          border-radius: 10px;
           display: flex; align-items: center; justify-content: center;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.25s ease;
         }
         .nav-v2-item.active .nav-v2-icon-wrap {
-          background: #16A34A;
-          box-shadow: 0 4px 15px rgba(22, 163, 74, 0.45);
-          transform: translateY(-2px);
+          background: rgba(22, 163, 74, 0.12);
         }
         .nav-v2-label {
-          font-size: 10px;
+          font-size: 9px;
           font-weight: 600;
           letter-spacing: 0.02em;
-          transition: opacity 0.2s;
         }
         .nav-v2-item.active .nav-v2-label {
           font-weight: 700;
@@ -95,21 +92,20 @@ export default function BottomNav({ items }: { items: NavItem[] }) {
           width: 4px; height: 4px;
           border-radius: 50%;
           background: #16A34A;
-          box-shadow: 0 0 6px rgba(22, 163, 74, 0.6);
-          margin-top: -1px;
+          margin-top: 0px;
         }
         .nav-v2-badge {
           position: absolute;
-          top: 0; right: 2px;
+          top: 0; right: 0;
           background: #EF4444;
           color: #fff;
-          font-size: 9px;
+          font-size: 8px;
           font-weight: 800;
-          min-width: 16px; height: 16px;
-          border-radius: 8px;
+          min-width: 14px; height: 14px;
+          border-radius: 7px;
           display: flex; align-items: center; justify-content: center;
-          padding: 0 4px;
-          border: 2px solid #0F172A;
+          padding: 0 3px;
+          border: 1.5px solid #fff;
           animation: badgePop 0.3s ease;
         }
       `}} />

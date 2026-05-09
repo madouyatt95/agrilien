@@ -89,14 +89,14 @@ export default function AIAssistant() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          position: 'fixed', bottom: 90, right: 20, width: 56, height: 56,
-          borderRadius: 28, background: 'linear-gradient(135deg, #0F172A, #1E293B)',
-          color: '#38BDF8', border: '2px solid #334155', boxShadow: '0 8px 25px rgba(15, 23, 42, 0.4)',
+          position: 'fixed', bottom: 72, right: 14, width: 44, height: 44,
+          borderRadius: 22, background: 'linear-gradient(135deg, #16A34A, #22C55E)',
+          color: '#fff', border: 'none', boxShadow: '0 4px 14px rgba(22, 163, 74, 0.35)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 90,
           transition: 'all 0.3s ease', transform: isOpen ? 'rotate(180deg)' : 'none'
         }}
       >
-        {isOpen ? <X size={24} /> : <Sparkles size={24} />}
+        {isOpen ? <X size={20} /> : <Sparkles size={20} />}
       </button>
 
       {/* Chat Window */}
