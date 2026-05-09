@@ -28,6 +28,7 @@ function ProducteurProfilContent() {
     farmSize: producer.farmSize, specialties: producer.specialties.join(', '),
   });
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(producer.specialties);
+  const [specialization, setSpecialization] = useState<string>(producer.specialties[0] || '');
   const [notifSettings, setNotifSettings] = useState({ orders: true, promos: true, messages: true, newsletter: false });
   const [savedMsg, setSavedMsg] = useState('');
   const [toast, setToast] = useState<string | null>(null);
@@ -75,14 +76,29 @@ function ProducteurProfilContent() {
               )}
             </div>
           ))}
-          {/* Spécialités standardisées */}
+          {/* Spécialisation Métier (dropdown) */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Spécialités</label>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Spécialisation Métier</label>
+            {editMode ? (
+              <select value={specialization} onChange={e => setSpecialization(e.target.value)} style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--primary)', borderRadius: 8, fontSize: 14, outline: 'none', background: 'var(--surface)', color: 'var(--text)' }}>
+                <option value="">-- Choisir une spécialisation --</option>
+                {SPECIALTIES_LIST.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            ) : (
+              <div style={{ padding: '12px 16px', background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 18 }}>🌾</span>
+                {specialization || 'Non définie'}
+              </div>
+            )}
+          </div>
+          {/* Spécialités produits */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Spécialités produits</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {SPECIALTIES_LIST.map(s => (
-                <button key={s} onClick={() => editMode && toggleSpec(s)} type="button" style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, border: selectedSpecialties.includes(s) ? '2px solid var(--primary)' : '1px solid var(--border)', background: selectedSpecialties.includes(s) ? 'var(--primary-light)' : 'var(--surface)', color: selectedSpecialties.includes(s) ? 'var(--primary)' : 'var(--text-secondary)', opacity: editMode ? 1 : 0.7, cursor: editMode ? 'pointer' : 'default' }}>
-                  {selectedSpecialties.includes(s) ? '✓ ' : ''}{s}
-                </button>
+              {selectedSpecialties.map(s => (
+                <span key={s} style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                  {s}
+                </span>
               ))}
             </div>
           </div>
@@ -413,7 +429,11 @@ function ProducteurProfilContent() {
             </div>
           ))}
           <div style={{ padding: '10px 0' }}>
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>🌿 Spécialités</span>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>🌾 Spécialisation</span>
+            <span style={{ padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 700, background: 'var(--primary)', color: '#fff', display: 'inline-block' }}>{specialization || 'Non définie'}</span>
+          </div>
+          <div style={{ padding: '10px 0' }}>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>🌿 Spécialités produits</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {selectedSpecialties.map(s => (
                 <span key={s} style={{ padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 600, background: 'var(--primary-light)', color: 'var(--primary)' }}>{s}</span>

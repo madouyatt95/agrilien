@@ -33,7 +33,10 @@ export default function TransportPage() {
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
-  const [offers] = useState<TransportOffer[]>([
+  const [showModal, setShowModal] = useState(false);
+  const [showReserveModal, setShowReserveModal] = useState(false);
+  const [reserveForm, setReserveForm] = useState({ weight: '', volume: '', palettes: '', comment: '' });
+  const [offers, setOffers] = useState<TransportOffer[]>([
     {
       id: '1', driverName: 'Modou Diagne', company: 'TransExpress SN',
       departure: 'Kolda', destination: 'Dakar', date: 'Demain, 06:00',
@@ -54,8 +57,6 @@ export default function TransportPage() {
     }
   ]);
 
-  const [showModal, setShowModal] = useState(false);
-
   const handleAddOffer = (e: React.FormEvent) => {
     e.preventDefault();
     setShowModal(false);
@@ -63,8 +64,19 @@ export default function TransportPage() {
   };
 
   const handleReserve = (offer: TransportOffer) => {
+    setShowReserveModal(true);
+  };
+
+  const handleConfirmReservation = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOffer) return;
+    const weightTons = parseFloat(reserveForm.weight) / 1000 || 0;
+    // Update available capacity
+    setOffers(prev => prev.map(o => o.id === selectedOffer.id ? { ...o, availableCapacity: Math.max(0, o.availableCapacity - weightTons) } : o));
+    setShowReserveModal(false);
     setSelectedOffer(null);
-    showToast(`✅ Transport réservé avec ${offer.driverName} ! Il vous contactera sous peu.`);
+    setReserveForm({ weight: '', volume: '', palettes: '', comment: '' });
+    showToast(`✅ Réservation envoyée à ${selectedOffer.driverName} ! Il vous contactera sous peu.`);
   };
 
   return (
@@ -217,6 +229,50 @@ export default function TransportPage() {
                 <Check size={18} /> Réserver ce transport
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODALE FORMULAIRE DE RÉSERVATION */}
+      {showReserveModal && selectedOffer && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowReserveModal(false)}>
+          <div style={{ background: 'var(--surface)', width: '100%', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: '24px 24px 40px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700 }}>📦 Détails de la réservation</h2>
+              <button onClick={() => setShowReserveModal(false)} style={{ background: 'var(--bg)', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={20} /></button>
+            </div>
+
+            <div style={{ background: 'var(--bg)', padding: 12, borderRadius: 12, marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ fontWeight: 700, fontSize: 14 }}>{selectedOffer.driverName}</p>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{selectedOffer.departure} → {selectedOffer.destination}</p>
+              </div>
+              <p style={{ fontWeight: 800, color: 'var(--primary)' }}>{selectedOffer.availableCapacity}T dispo</p>
+            </div>
+
+            <form onSubmit={handleConfirmReservation} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Poids de la marchandise (Kg) <span style={{color: '#EF4444'}}>*</span></label>
+                <input required type="number" value={reserveForm.weight} onChange={e => setReserveForm({...reserveForm, weight: e.target.value})} placeholder="Ex: 500" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Volume (m³)</label>
+                  <input type="number" step="0.1" value={reserveForm.volume} onChange={e => setReserveForm({...reserveForm, volume: e.target.value})} placeholder="Ex: 2.5" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Palettes / Colis</label>
+                  <input type="number" value={reserveForm.palettes} onChange={e => setReserveForm({...reserveForm, palettes: e.target.value})} placeholder="Ex: 4" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)' }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Commentaire pour le transporteur</label>
+                <textarea value={reserveForm.comment} onChange={e => setReserveForm({...reserveForm, comment: e.target.value})} placeholder="Précisez la nature de la marchandise, conditions..." rows={3} style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', resize: 'none' }} />
+              </div>
+              <button type="submit" className="btn btn-primary btn-block btn-lg">
+                <Check size={18} style={{ marginRight: 6 }} /> Confirmer la réservation
+              </button>
+            </form>
           </div>
         </div>
       )}

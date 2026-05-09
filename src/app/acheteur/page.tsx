@@ -30,13 +30,22 @@ export default function AcheteurHomePage() {
     { id: 4, producer: 'Alpha Ndiaye', photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop', image: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600&h=900&fit=crop', caption: 'Chargement des oignons pour Dakar 🧅🚛', time: 'Il y a 8h', hasNew: false },
   ];
 
-  // Story auto-progress
+  // Story auto-progress — WhatsApp-style auto-advance
   useEffect(() => {
     if (activeStory === null) return;
     setStoryProgress(0);
     const interval = setInterval(() => {
       setStoryProgress(prev => {
-        if (prev >= 100) { setActiveStory(null); return 0; }
+        if (prev >= 100) {
+          // Auto-advance to the next story, or close if last
+          const nextIndex = activeStory + 1;
+          if (nextIndex < mockStories.length) {
+            setActiveStory(nextIndex);
+          } else {
+            setActiveStory(null);
+          }
+          return 0;
+        }
         return prev + 2;
       });
     }, 100);
@@ -428,7 +437,7 @@ export default function AcheteurHomePage() {
 
       {/* ═══ STORY VIEWER FULLSCREEN ═══ */}
       {activeStory !== null && (
-        <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 500, display: 'flex', flexDirection: 'column' }} onClick={() => setActiveStory(null)}>
+        <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 500, display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '12px 16px', display: 'flex', gap: 4 }}>
             {mockStories.map((_, i) => (
               <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.3)', overflow: 'hidden' }}>
@@ -446,8 +455,11 @@ export default function AcheteurHomePage() {
               <X size={24} />
             </button>
           </div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
             <img src={mockStories[activeStory].image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {/* Tap zones: left = prev, right = next */}
+            <div onClick={() => { if (activeStory > 0) { setActiveStory(activeStory - 1); setStoryProgress(0); } }} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '35%', cursor: 'pointer' }} />
+            <div onClick={() => { if (activeStory < mockStories.length - 1) { setActiveStory(activeStory + 1); setStoryProgress(0); } else { setActiveStory(null); } }} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '35%', cursor: 'pointer' }} />
           </div>
           <div style={{ padding: '16px 20px 40px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
             <p style={{ color: '#fff', fontSize: 15, fontWeight: 600 }}>{mockStories[activeStory].caption}</p>

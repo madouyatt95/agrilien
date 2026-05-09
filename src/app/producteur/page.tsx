@@ -386,7 +386,7 @@ export default function ProducteurDashboard() {
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>📸 Créer une Story</h2>
               <button onClick={() => { setShowStoryModal(false); setStoryPreview(null); }} style={{ background: 'var(--bg)', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={20} /></button>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>Partagez un moment de votre exploitation avec les acheteurs. La story reste visible pendant 24h.</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>Partagez un moment de votre exploitation. La story reste visible pendant 24h. Vidéos limitées à 30 secondes.</p>
             <form onSubmit={handleCreateStory} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Preview or Capture */}
               {storyPreview ? (
@@ -399,18 +399,28 @@ export default function ProducteurDashboard() {
                   <button type="button" onClick={() => setStoryPreview(null)} style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', fontSize: 16 }}>✕</button>
                 </div>
               ) : (
-                <label style={{ border: '2px dashed var(--primary)', borderRadius: 16, padding: 32, textAlign: 'center', cursor: 'pointer', background: 'var(--primary-light)' }}>
-                  <input type="file" accept="image/*,video/*" capture="environment" onChange={handleStoryFileChange} style={{ display: 'none' }} />
-                  <div style={{ fontSize: 40, marginBottom: 8 }}>📹</div>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary)' }}>Ouvrir la caméra</p>
-                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>Photo ou vidéo en direct depuis votre appareil</p>
-                </label>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  {/* Option 1: Camera Live */}
+                  <label style={{ flex: 1, border: '2px dashed var(--primary)', borderRadius: 16, padding: '24px 12px', textAlign: 'center', cursor: 'pointer', background: 'var(--primary-light)' }}>
+                    <input type="file" accept="image/*,video/*" capture="environment" onChange={handleStoryFileChange} style={{ display: 'none' }} />
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>📹</div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary)' }}>Caméra</p>
+                    <p style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 4 }}>Prendre en direct</p>
+                  </label>
+                  {/* Option 2: Gallery */}
+                  <label style={{ flex: 1, border: '2px dashed var(--border)', borderRadius: 16, padding: '24px 12px', textAlign: 'center', cursor: 'pointer', background: 'var(--surface)' }}>
+                    <input type="file" accept="image/*,video/*" onChange={handleStoryFileChange} style={{ display: 'none' }} />
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>🖼️</div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Galerie</p>
+                    <p style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 4 }}>Choisir un fichier</p>
+                  </label>
+                </div>
               )}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Légende (optionnelle)</label>
                 <input value={storyCaption} onChange={e => setStoryCaption(e.target.value)} placeholder="Ex: Récolte du jour 🌾" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)' }} />
               </div>
-              <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ background: '#7C3AED', borderColor: '#7C3AED' }}>{storyPreview ? '🚀 Publier la Story' : 'Capturer d\'abord'}</button>
+              <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ background: '#7C3AED', borderColor: '#7C3AED' }}>{storyPreview ? '🚀 Publier la Story' : 'Choisissez une source'}</button>
             </form>
           </div>
         </div>
