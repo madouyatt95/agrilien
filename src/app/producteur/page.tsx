@@ -20,6 +20,8 @@ export default function ProducteurDashboard() {
   const [locating, setLocating] = useState(false);
   const [showStoryModal, setShowStoryModal] = useState(false);
   const [storyCaption, setStoryCaption] = useState('');
+  const [storyPreview, setStoryPreview] = useState<string | null>(null);
+  const [storyMediaType, setStoryMediaType] = useState<'image' | 'video'>('image');
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
   const stats = producerMonthlyStats;
@@ -41,9 +43,20 @@ export default function ProducteurDashboard() {
 
   const handleCreateStory = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!storyPreview) { showToast('⚠️ Veuillez capturer une photo ou vidéo'); return; }
     setShowStoryModal(false);
     setStoryCaption('');
+    setStoryPreview(null);
     showToast('🎥 Story publiée ! Visible par les acheteurs pendant 24h');
+  };
+
+  const handleStoryFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setStoryMediaType(file.type.startsWith('video') ? 'video' : 'image');
+    const reader = new FileReader();
+    reader.onload = () => setStoryPreview(reader.result as string);
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -367,24 +380,37 @@ export default function ProducteurDashboard() {
 
       {/* MODALE CRÉER UNE STORY */}
       {showStoryModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowStoryModal(false)}>
-          <div style={{ background: 'var(--surface)', width: '100%', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end' }} onClick={() => { setShowStoryModal(false); setStoryPreview(null); }}>
+          <div style={{ background: 'var(--surface)', width: '100%', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: '24px 24px 40px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>📸 Créer une Story</h2>
-              <button onClick={() => setShowStoryModal(false)} style={{ background: 'var(--bg)', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={20} /></button>
+              <button onClick={() => { setShowStoryModal(false); setStoryPreview(null); }} style={{ background: 'var(--bg)', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={20} /></button>
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>Partagez un moment de votre exploitation avec les acheteurs. La story reste visible pendant 24h.</p>
             <form onSubmit={handleCreateStory} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ border: '2px dashed var(--border)', borderRadius: 16, padding: 32, textAlign: 'center', cursor: 'pointer' }}>
-                <ImageIcon size={40} color="var(--text-light)" style={{ marginBottom: 8 }} />
-                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)' }}>Ajouter une photo ou vidéo</p>
-                <p style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 4 }}>JPG, PNG, MP4 • 10 Mo max</p>
-              </div>
+              {/* Preview or Capture */}
+              {storyPreview ? (
+                <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', background: '#000' }}>
+                  {storyMediaType === 'video' ? (
+                    <video src={storyPreview} controls style={{ width: '100%', maxHeight: 260, objectFit: 'contain' }} />
+                  ) : (
+                    <img src={storyPreview} alt="Preview" style={{ width: '100%', maxHeight: 260, objectFit: 'contain' }} />
+                  )}
+                  <button type="button" onClick={() => setStoryPreview(null)} style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', fontSize: 16 }}>✕</button>
+                </div>
+              ) : (
+                <label style={{ border: '2px dashed var(--primary)', borderRadius: 16, padding: 32, textAlign: 'center', cursor: 'pointer', background: 'var(--primary-light)' }}>
+                  <input type="file" accept="image/*,video/*" capture="environment" onChange={handleStoryFileChange} style={{ display: 'none' }} />
+                  <div style={{ fontSize: 40, marginBottom: 8 }}>📹</div>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary)' }}>Ouvrir la caméra</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>Photo ou vidéo en direct depuis votre appareil</p>
+                </label>
+              )}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Légende (optionnelle)</label>
                 <input value={storyCaption} onChange={e => setStoryCaption(e.target.value)} placeholder="Ex: Récolte du jour 🌾" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)' }} />
               </div>
-              <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ background: '#7C3AED', borderColor: '#7C3AED' }}>Publier la Story</button>
+              <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ background: '#7C3AED', borderColor: '#7C3AED' }}>{storyPreview ? '🚀 Publier la Story' : 'Capturer d\'abord'}</button>
             </form>
           </div>
         </div>

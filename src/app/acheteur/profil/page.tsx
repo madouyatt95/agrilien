@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { products } from '@/data/mock-products';
-import { ChevronLeft, LogOut, ChevronRight, ShoppingBag, Heart, Star, MessageCircle, MapPin, Phone, Mail, RefreshCw, Upload, Navigation, Send, Bell, Truck, CreditCard, Edit2, AlertCircle } from 'lucide-react';
+import { ChevronLeft, LogOut, ChevronRight, ShoppingBag, Heart, Star, MessageCircle, MapPin, Phone, Mail, RefreshCw, Upload, Navigation, Send, Bell, Truck, CreditCard, Edit2, AlertCircle, Mic, Play, Square } from 'lucide-react';
 import { formatPrice, getCurrentLocation } from '@/lib/utils';
 import { useGalsenRegions } from '@/hooks/useGalsenAPI';
 import { specialties as SPECIALTIES_LIST } from '@/data/product-catalog';
@@ -58,7 +58,8 @@ export default function ProfilPage() {
 
   const [openConversation, setOpenConversation] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState('');
-  const [chatMessages, setChatMessages] = useState<Record<number, Array<{ text: string; fromMe: boolean; time: string }>>>({
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Record<number, Array<{ text?: string; fromMe: boolean; time: string; voice?: { duration: number } }>>>({
     1: [
       { text: 'Bonjour, j\'ai commandé 3 kg de mangues Kent', fromMe: true, time: '10:15' },
       { text: 'Bonjour Fatou ! Oui je vois votre commande #CMD-1258', fromMe: false, time: '10:18' },
@@ -281,15 +282,49 @@ export default function ProfilPage() {
                 borderBottomLeftRadius: msg.fromMe ? 16 : 4,
                 boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
               }}>
-                <p style={{ fontSize: 14, lineHeight: 1.4 }}>{msg.text}</p>
+                {msg.voice ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <button style={{ width: 32, height: 32, borderRadius: '50%', background: msg.fromMe ? 'rgba(255,255,255,0.2)' : 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' }}>
+                      <Play size={14} color={msg.fromMe ? '#fff' : 'var(--primary)'} />
+                    </button>
+                    <div style={{ flex: 1, display: 'flex', gap: 2, alignItems: 'center' }}>
+                      {[...Array(16)].map((_, j) => <div key={j} style={{ width: 3, height: Math.random() * 14 + 4, background: msg.fromMe ? 'rgba(255,255,255,0.5)' : 'var(--primary)', borderRadius: 2, opacity: 0.5 + Math.random() * 0.5 }} />)}
+                    </div>
+                    <span style={{ fontSize: 10, opacity: 0.7 }}>{msg.voice.duration}s</span>
+                  </div>
+                ) : (
+                  <p style={{ fontSize: 14, lineHeight: 1.4 }}>{msg.text}</p>
+                )}
                 <p style={{ fontSize: 10, marginTop: 4, opacity: 0.6, textAlign: 'right' }}>{msg.time}</p>
               </div>
             </div>
           ))}
         </div>
 
+        {/* Recording indicator */}
+        {isRecordingVoice && (
+          <div style={{ background: '#FEF2F2', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid #FECACA' }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#EF4444', animation: 'pulse 1s ease infinite' }} />
+            <span style={{ fontSize: 13, color: '#EF4444', fontWeight: 600, flex: 1 }}>Enregistrement en cours...</span>
+            <button onClick={() => {
+              setIsRecordingVoice(false);
+              if (!openConversation) return;
+              setChatMessages(prev => ({
+                ...prev,
+                [openConversation]: [...(prev[openConversation] || []), { fromMe: true, time: 'Maintenant', voice: { duration: Math.floor(Math.random() * 8) + 3 } }],
+              }));
+              showToast('🎤 Message vocal envoyé');
+            }} style={{ padding: '6px 12px', background: '#EF4444', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 12, border: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Square size={12} /> Envoyer
+            </button>
+          </div>
+        )}
+
         {/* Input */}
         <div style={{ padding: '12px 16px', background: 'var(--surface)', borderTop: '1px solid var(--border)', display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button onClick={() => setIsRecordingVoice(true)} style={{ width: 40, height: 40, borderRadius: '50%', background: isRecordingVoice ? '#FEF2F2' : '#F3F4F6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isRecordingVoice ? '#EF4444' : 'var(--text-secondary)', flexShrink: 0 }}>
+            <Mic size={20} />
+          </button>
           <input
             value={newMessage}
             onChange={e => setNewMessage(e.target.value)}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface MapMarker {
   id: string;
@@ -20,48 +20,81 @@ interface LeafletMapProps {
 
 export default function LeafletMap({ markers, onMarkerClick, center = [14.5, -14.5], zoom = 7 }: LeafletMapProps) {
   const [mapReady, setMapReady] = useState(false);
+  const mapRef = useRef<any>(null);
+  const markersLayerRef = useRef<any>(null);
 
+  // Initialize map once
   useEffect(() => {
-    // Dynamically import leaflet only on client side
     const loadMap = async () => {
       const L = (await import('leaflet')).default;
       await import('leaflet/dist/leaflet.css');
 
       const container = document.getElementById('agrilien-map');
-      if (!container || (container as any)._leaflet_id) return;
+      if (!container) return;
+      if ((container as any)._leaflet_id) {
+        // Map already initialized, just update ref
+        return;
+      }
 
       const map = L.map(container).setView(center, zoom);
+      mapRef.current = map;
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap',
         maxZoom: 18,
       }).addTo(map);
 
-      // Custom green icon
-      const greenIcon = L.divIcon({
-        html: `<div style="width:32px;height:32px;background:#0B6B32;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🌾</div>`,
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        className: '',
-      });
+      // Create a layer group for markers
+      const markersLayer = L.layerGroup().addTo(map);
+      markersLayerRef.current = markersLayer;
 
-      markers.forEach(m => {
-        const marker = L.marker([m.lat, m.lng], { icon: greenIcon }).addTo(map);
-        marker.bindPopup(`
-          <div style="text-align:center;min-width:150px;">
-            <strong style="font-size:14px;">${m.name}</strong><br/>
-            <span style="color:#666;font-size:12px;">${m.producers} producteurs</span><br/>
-            <span style="font-size:11px;color:#0B6B32;">${m.specialties.join(', ')}</span>
-          </div>
-        `);
-        marker.on('click', () => onMarkerClick(m));
-      });
+      // Add markers
+      addMarkers(L, markersLayer, markers);
 
       setMapReady(true);
     };
 
     loadMap();
   }, []);
+
+  // Update markers when they change
+  useEffect(() => {
+    if (!mapRef.current || !markersLayerRef.current) return;
+    const loadLeaflet = async () => {
+      const L = (await import('leaflet')).default;
+      markersLayerRef.current.clearLayers();
+      addMarkers(L, markersLayerRef.current, markers);
+    };
+    loadLeaflet();
+  }, [markers]);
+
+  // FlyTo when center changes
+  useEffect(() => {
+    if (!mapRef.current) return;
+    mapRef.current.flyTo(center, zoom, { duration: 1.2 });
+  }, [center[0], center[1], zoom]);
+
+  const addMarkers = (L: any, layer: any, markerData: MapMarker[]) => {
+    const greenIcon = L.divIcon({
+      html: `<div style="width:32px;height:32px;background:#0B6B32;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🌾</div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      className: '',
+    });
+
+    markerData.forEach(m => {
+      const marker = L.marker([m.lat, m.lng], { icon: greenIcon });
+      marker.bindPopup(`
+        <div style="text-align:center;min-width:150px;">
+          <strong style="font-size:14px;">${m.name}</strong><br/>
+          <span style="color:#666;font-size:12px;">${m.producers} producteurs</span><br/>
+          <span style="font-size:11px;color:#0B6B32;">${m.specialties.join(', ')}</span>
+        </div>
+      `);
+      marker.on('click', () => onMarkerClick(m));
+      layer.addLayer(marker);
+    });
+  };
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>

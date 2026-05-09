@@ -173,7 +173,9 @@ export default function CartePage() {
                 onMarkerClick={(m) => {
                   const reg = regions.find(r => r.id === m.id);
                   if (reg) { setSelected(reg); setSelectedProducer(null); }
-                }} 
+                }}
+                center={selected ? [selected.lat, selected.lng] : [14.5, -14.5]}
+                zoom={selected ? 10 : 7}
               />
             </div>
           </div>

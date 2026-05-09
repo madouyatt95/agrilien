@@ -78,18 +78,16 @@ export const productCatalog: CatalogProduct[] = [
 ];
 
 export const specialties = [
-  'Maraîchage',
-  'Arboriculture',
-  'Riziculture',
-  'Élevage bovin',
-  'Aviculture',
-  'Apiculture',
-  'Pêche',
-  'Produits laitiers',
-  'Céréales',
-  'Tubercules',
-  'Transformation',
-  'Horticulture',
+  'Maraîcher',
+  'Arboriculteur',
+  'Riziculteur',
+  'Éleveur bovin',
+  'Aviculteur',
+  'Apiculteur',
+  'Pêcheur',
+  'Producteur laitier',
+  'Céréalier',
+  'Coopérative agricole',
 ];
 
 export const catalogCategories = [...new Set(productCatalog.map(p => p.category))];
