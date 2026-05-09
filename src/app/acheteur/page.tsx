@@ -263,22 +263,23 @@ export default function AcheteurHomePage() {
           </div>
           
           <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }}>
-            {/* Simulation d'un produit en vente flash */}
-            <div onClick={() => router.push(`/acheteur/produit/prod-3`)} style={{ minWidth: 160, background: '#fff', borderRadius: 12, overflow: 'hidden', color: '#000', cursor: 'pointer', flexShrink: 0, position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 0, right: 0, background: '#EF4444', color: '#fff', fontSize: 12, fontWeight: 800, padding: '4px 8px', borderBottomLeftRadius: 12, zIndex: 2 }}>
-                -70%
-              </div>
-              <div style={{ height: 110, position: 'relative' }}>
-                <img src="https://images.unsplash.com/photo-1550828520-4cb496926fc9?w=300&h=300&fit=crop" alt="Mangues Kent" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-              <div style={{ padding: '10px 12px' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Mangues Kent mûres</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span style={{ fontSize: 16, fontWeight: 800, color: '#EF4444' }}>300F</span>
-                  <span style={{ fontSize: 11, color: '#9CA3AF', textDecoration: 'line-through' }}>1000F</span>
+            {products.filter(p => p.discount && p.discount > 0).map(product => (
+              <div key={product.id} onClick={() => router.push(`/acheteur/produit/${product.id}`)} style={{ minWidth: 160, background: '#fff', borderRadius: 12, overflow: 'hidden', color: '#000', cursor: 'pointer', flexShrink: 0, position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 0, right: 0, background: '#EF4444', color: '#fff', fontSize: 12, fontWeight: 800, padding: '4px 8px', borderBottomLeftRadius: 12, zIndex: 2 }}>
+                  -{product.discount}%
+                </div>
+                <div style={{ height: 110, position: 'relative' }}>
+                  <img src={product.images[0]} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div style={{ padding: '10px 12px' }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{product.name}</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: '#EF4444' }}>{formatPrice(product.price)}</span>
+                    {product.originalPrice && <span style={{ fontSize: 11, color: '#9CA3AF', textDecoration: 'line-through' }}>{formatPrice(product.originalPrice)}</span>}
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
