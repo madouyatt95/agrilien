@@ -386,7 +386,7 @@ export default function ProducteurDashboard() {
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>📸 Créer une Story</h2>
               <button onClick={() => { setShowStoryModal(false); setStoryPreview(null); }} style={{ background: 'var(--bg)', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={20} /></button>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>Partagez un moment de votre exploitation. La story reste visible pendant 24h. Vidéos limitées à 30 secondes.</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>Partagez un moment de votre exploitation. La story reste visible pendant 24h. Vidéos limitées à 15 secondes.</p>
             <form onSubmit={handleCreateStory} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Preview or Capture */}
               {storyPreview ? (
