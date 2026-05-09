@@ -103,7 +103,8 @@ export default function CartePage() {
           onChange={(v, suggestion) => {
             if (suggestion) {
               const regionName = suggestion.type === 'region' ? suggestion.name : suggestion.region;
-              const foundRegion = regions.find(r => r.name.toLowerCase() === regionName.toLowerCase());
+              const normalize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              const foundRegion = regions.find(r => normalize(r.name) === normalize(regionName));
               if (foundRegion) setSelected(foundRegion);
             }
           }}

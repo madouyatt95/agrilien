@@ -189,6 +189,13 @@ function ProducteurProfilContent() {
 
   // ═══ PANEL: Adresses ═══
   if (panel === 'adresses') {
+    const [addrs, setAddrs] = useState([
+      { id: 1, label: '🌾 Exploitation', detail: `${producer.city}, Sénégal — ${producer.farmSize}`, isDefault: true },
+      { id: 2, label: '🏠 Domicile', detail: 'Quartier Saré Moussa, Kolda', isDefault: false },
+    ]);
+    const [showAddAddr, setShowAddAddr] = useState(false);
+    const [editAddr, setEditAddr] = useState<number | null>(null);
+    const [addrForm, setAddrForm] = useState({ label: '', detail: '' });
     return (
       <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
         <div className="page-header">
@@ -197,18 +204,46 @@ function ProducteurProfilContent() {
           <div style={{ width: 24 }} />
         </div>
         <div style={{ padding: 20 }}>
-          <div className="card" style={{ padding: 16, marginBottom: 12, border: '2px solid var(--primary)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontWeight: 600 }}>🌾 Exploitation</span>
-              <span className="badge" style={{ background: '#EAF7EF', color: '#0B6B32' }}>Par défaut</span>
+          {addrs.map(addr => (
+            <div key={addr.id} className="card" style={{ padding: 16, marginBottom: 12, border: addr.isDefault ? '2px solid var(--primary)' : '1px solid var(--border)' }}>
+              {editAddr === addr.id ? (
+                <div>
+                  <input value={addrForm.label} onChange={e => setAddrForm({...addrForm, label: e.target.value})} placeholder="Nom" style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--border)', marginBottom: 8, fontSize: 14 }} />
+                  <input value={addrForm.detail} onChange={e => setAddrForm({...addrForm, detail: e.target.value})} placeholder="Adresse complète" style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--border)', marginBottom: 10, fontSize: 14 }} />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => { setAddrs(addrs.map(a => a.id === addr.id ? { ...a, label: addrForm.label, detail: addrForm.detail } : a)); setEditAddr(null); showToast('✅ Adresse modifiée'); }} className="btn btn-primary btn-sm" style={{ flex: 1 }}>Enregistrer</button>
+                    <button onClick={() => setEditAddr(null)} className="btn btn-outline btn-sm" style={{ flex: 1 }}>Annuler</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span style={{ fontWeight: 600 }}>{addr.label}</span>
+                    {addr.isDefault && <span className="badge" style={{ background: '#EAF7EF', color: '#0B6B32' }}>Par défaut</span>}
+                  </div>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 10 }}>{addr.detail}</p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => { setEditAddr(addr.id); setAddrForm({ label: addr.label, detail: addr.detail }); }} style={{ fontSize: 12, color: '#3B82F6', fontWeight: 600, background: '#EFF6FF', padding: '6px 12px', borderRadius: 8, border: 'none' }}>✏️ Modifier</button>
+                    {!addr.isDefault && <button onClick={() => { setAddrs(addrs.map(a => ({ ...a, isDefault: a.id === addr.id }))); showToast('✅ Adresse par défaut mise à jour'); }} style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600, background: 'var(--primary-light)', padding: '6px 12px', borderRadius: 8, border: 'none' }}>⭐ Par défaut</button>}
+                    {!addr.isDefault && <button onClick={() => { setAddrs(addrs.filter(a => a.id !== addr.id)); showToast('🗑️ Adresse supprimée'); }} style={{ fontSize: 12, color: '#EF4444', fontWeight: 600, background: '#FEF2F2', padding: '6px 12px', borderRadius: 8, border: 'none' }}>🗑️</button>}
+                  </div>
+                </>
+              )}
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{producer.city}, Sénégal — {producer.farmSize}</p>
-          </div>
-          <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-            <p style={{ fontWeight: 600, marginBottom: 6 }}>🏠 Domicile</p>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Quartier Saré Moussa, Kolda</p>
-          </div>
-          <button className="btn btn-outline btn-block">+ Ajouter une adresse</button>
+          ))}
+          {showAddAddr ? (
+            <div className="card" style={{ padding: 16, marginBottom: 12 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Nouvelle adresse</h3>
+              <input value={addrForm.label} onChange={e => setAddrForm({...addrForm, label: e.target.value})} placeholder="Nom (ex: Bureau)" style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--border)', marginBottom: 8, fontSize: 14 }} />
+              <input value={addrForm.detail} onChange={e => setAddrForm({...addrForm, detail: e.target.value})} placeholder="Adresse complète" style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--border)', marginBottom: 10, fontSize: 14 }} />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => { if (addrForm.label && addrForm.detail) { setAddrs([...addrs, { id: Date.now(), label: addrForm.label, detail: addrForm.detail, isDefault: false }]); setAddrForm({ label: '', detail: '' }); setShowAddAddr(false); showToast('✅ Adresse ajoutée'); } }} className="btn btn-primary btn-sm" style={{ flex: 1 }}>Ajouter</button>
+                <button onClick={() => { setShowAddAddr(false); setAddrForm({ label: '', detail: '' }); }} className="btn btn-outline btn-sm" style={{ flex: 1 }}>Annuler</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => { setShowAddAddr(true); setAddrForm({ label: '', detail: '' }); }} className="btn btn-outline btn-block">+ Ajouter une adresse</button>
+          )}
         </div>
       </div>
     );
@@ -216,10 +251,12 @@ function ProducteurProfilContent() {
 
   // ═══ PANEL: Paiement ═══
   if (panel === 'paiement') {
-    const methods = [
-      { name: 'Wave', phone: '+221 77 *** ** 78', icon: '📱', active: true },
-      { name: 'Orange Money', phone: '+221 76 *** ** 45', icon: '💳', active: false },
-    ];
+    const [payMethods, setPayMethods] = useState([
+      { id: 1, name: 'Wave', phone: '+221 77 234 56 78', icon: '📱', active: true },
+      { id: 2, name: 'Orange Money', phone: '+221 76 345 67 45', icon: '💳', active: false },
+    ]);
+    const [showAddPay, setShowAddPay] = useState(false);
+    const [payForm, setPayForm] = useState({ name: 'Wave', phone: '' });
     return (
       <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
         <div className="page-header">
@@ -228,17 +265,38 @@ function ProducteurProfilContent() {
           <div style={{ width: 24 }} />
         </div>
         <div style={{ padding: 20 }}>
-          {methods.map((pm, i) => (
-            <div key={i} className="card" style={{ padding: 16, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14, border: pm.active ? '2px solid var(--primary)' : '1px solid var(--border)' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#FFF7ED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{pm.icon}</div>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontWeight: 600, fontSize: 14 }}>{pm.name}</p>
-                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{pm.phone}</p>
+          {payMethods.map(pm => (
+            <div key={pm.id} className="card" style={{ padding: 16, marginBottom: 12, border: pm.active ? '2px solid var(--primary)' : '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 10, background: '#FFF7ED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{pm.icon}</div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontWeight: 600, fontSize: 14 }}>{pm.name}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{pm.phone}</p>
+                </div>
+                <span className="badge" style={{ background: pm.active ? '#EAF7EF' : 'var(--bg)', color: pm.active ? '#0B6B32' : 'var(--text-secondary)' }}>{pm.active ? 'Actif' : 'Inactif'}</span>
               </div>
-              <span className="badge" style={{ background: pm.active ? '#EAF7EF' : 'var(--bg)', color: pm.active ? '#0B6B32' : 'var(--text-secondary)' }}>{pm.active ? 'Actif' : 'Inactif'}</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {!pm.active && <button onClick={() => { setPayMethods(payMethods.map(p => ({ ...p, active: p.id === pm.id }))); showToast(`✅ ${pm.name} activé comme moyen principal`); }} style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary)', background: 'var(--primary-light)', padding: '6px 12px', borderRadius: 8, border: 'none' }}>Activer</button>}
+                {!pm.active && <button onClick={() => { setPayMethods(payMethods.filter(p => p.id !== pm.id)); showToast('🗑️ Moyen de paiement supprimé'); }} style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', padding: '6px 12px', borderRadius: 8, border: 'none' }}>Supprimer</button>}
+                {pm.active && <span style={{ fontSize: 12, color: 'var(--text-light)' }}>Moyen de paiement principal</span>}
+              </div>
             </div>
           ))}
-          <button className="btn btn-outline btn-block" style={{ marginTop: 4 }}>+ Ajouter un moyen de paiement</button>
+          {showAddPay ? (
+            <div className="card" style={{ padding: 16, marginBottom: 12 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Ajouter un moyen de paiement</h3>
+              <select value={payForm.name} onChange={e => setPayForm({...payForm, name: e.target.value})} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--border)', marginBottom: 8, fontSize: 14 }}>
+                <option>Wave</option><option>Orange Money</option><option>Free Money</option><option>Carte Bancaire</option>
+              </select>
+              <input value={payForm.phone} onChange={e => setPayForm({...payForm, phone: e.target.value})} placeholder="Numéro (ex: +221 77 000 00 00)" style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--border)', marginBottom: 10, fontSize: 14 }} />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => { if (payForm.phone) { setPayMethods([...payMethods, { id: Date.now(), name: payForm.name, phone: payForm.phone, icon: payForm.name === 'Wave' ? '📱' : payForm.name === 'Orange Money' ? '💳' : '💰', active: false }]); setShowAddPay(false); setPayForm({ name: 'Wave', phone: '' }); showToast('✅ Moyen de paiement ajouté'); } }} className="btn btn-primary btn-sm" style={{ flex: 1 }}>Ajouter</button>
+                <button onClick={() => setShowAddPay(false)} className="btn btn-outline btn-sm" style={{ flex: 1 }}>Annuler</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setShowAddPay(true)} className="btn btn-outline btn-block" style={{ marginTop: 4 }}>+ Ajouter un moyen de paiement</button>
+          )}
         </div>
       </div>
     );
@@ -246,22 +304,68 @@ function ProducteurProfilContent() {
 
   // ═══ PANEL: Sécurité ═══
   if (panel === 'securite') {
+    const [secSection, setSecSection] = useState<null | 'password' | '2fa' | 'sessions'>(null);
+    const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
+    const [twoFA, setTwoFA] = useState(false);
+    const [sessions] = useState([
+      { device: '📱 Samsung Galaxy A54', location: 'Kolda, Sénégal', lastSeen: 'Actif maintenant', current: true },
+      { device: '💻 Chrome — Windows', location: 'Dakar, Sénégal', lastSeen: 'Il y a 2 jours', current: false },
+    ]);
     return (
       <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
         <div className="page-header">
-          <button onClick={() => setPanel(null)}><ChevronLeft size={24} /></button>
-          <h1>Sécurité</h1>
+          <button onClick={() => secSection ? setSecSection(null) : setPanel(null)}><ChevronLeft size={24} /></button>
+          <h1>{secSection === 'password' ? 'Mot de passe' : secSection === '2fa' ? '2FA' : secSection === 'sessions' ? 'Sessions' : 'Sécurité'}</h1>
           <div style={{ width: 24 }} />
         </div>
         <div style={{ padding: 20 }}>
-          {[{ label: 'Changer le mot de passe', desc: 'Dernière modification il y a 3 mois' },
-            { label: 'Authentification à deux facteurs', desc: 'Protégez votre compte avec la 2FA' },
-            { label: 'Sessions actives', desc: '2 appareils connectés' }].map((item, i) => (
-            <div key={i} className="card" style={{ padding: 16, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div><p style={{ fontWeight: 600, fontSize: 14 }}>{item.label}</p><p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{item.desc}</p></div>
-              <ChevronRight size={18} color="var(--text-light)" />
+          {!secSection && (
+            <>
+              <button onClick={() => setSecSection('password')} className="card" style={{ padding: 16, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer' }}>
+                <div><p style={{ fontWeight: 600, fontSize: 14 }}>🔑 Changer le mot de passe</p><p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Dernière modification il y a 3 mois</p></div>
+                <ChevronRight size={18} color="var(--text-light)" />
+              </button>
+              <button onClick={() => setSecSection('2fa')} className="card" style={{ padding: 16, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer' }}>
+                <div><p style={{ fontWeight: 600, fontSize: 14 }}>🛡️ Authentification 2FA</p><p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{twoFA ? 'Activée' : 'Désactivée'}</p></div>
+                <ChevronRight size={18} color="var(--text-light)" />
+              </button>
+              <button onClick={() => setSecSection('sessions')} className="card" style={{ padding: 16, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer' }}>
+                <div><p style={{ fontWeight: 600, fontSize: 14 }}>📱 Sessions actives</p><p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{sessions.length} appareils connectés</p></div>
+                <ChevronRight size={18} color="var(--text-light)" />
+              </button>
+            </>
+          )}
+          {secSection === 'password' && (
+            <div className="card" style={{ padding: 20 }}>
+              <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>Modifier votre mot de passe</p>
+              <input type="password" value={pwForm.current} onChange={e => setPwForm({...pwForm, current: e.target.value})} placeholder="Mot de passe actuel" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', marginBottom: 10, fontSize: 14 }} />
+              <input type="password" value={pwForm.newPw} onChange={e => setPwForm({...pwForm, newPw: e.target.value})} placeholder="Nouveau mot de passe" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', marginBottom: 10, fontSize: 14 }} />
+              <input type="password" value={pwForm.confirm} onChange={e => setPwForm({...pwForm, confirm: e.target.value})} placeholder="Confirmer le nouveau mot de passe" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', marginBottom: 16, fontSize: 14 }} />
+              <button onClick={() => { if (pwForm.newPw && pwForm.newPw === pwForm.confirm) { setPwForm({ current: '', newPw: '', confirm: '' }); setSecSection(null); showToast('✅ Mot de passe modifié'); } else { showToast('⚠️ Les mots de passe ne correspondent pas'); } }} className="btn btn-primary btn-block">Enregistrer</button>
             </div>
-          ))}
+          )}
+          {secSection === '2fa' && (
+            <div className="card" style={{ padding: 20, textAlign: 'center' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: twoFA ? '#F0FDF4' : '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 28 }}>{twoFA ? '🛡️' : '⚠️'}</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>{twoFA ? '2FA Activée' : '2FA Désactivée'}</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>{twoFA ? 'Votre compte est protégé par une double authentification.' : 'Activez la 2FA pour renforcer la sécurité de votre compte.'}</p>
+              <button onClick={() => { setTwoFA(!twoFA); showToast(twoFA ? '⚠️ 2FA désactivée' : '✅ 2FA activée avec succès'); }} className={`btn ${twoFA ? 'btn-outline' : 'btn-primary'} btn-block`}>{twoFA ? 'Désactiver la 2FA' : 'Activer la 2FA'}</button>
+            </div>
+          )}
+          {secSection === 'sessions' && (
+            <>
+              {sessions.map((s, i) => (
+                <div key={i} className="card" style={{ padding: 16, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontWeight: 600, fontSize: 14 }}>{s.device}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{s.location}</p>
+                    <p style={{ fontSize: 11, color: s.current ? 'var(--success)' : 'var(--text-light)', fontWeight: 600, marginTop: 2 }}>{s.lastSeen}</p>
+                  </div>
+                  {s.current ? <span className="badge" style={{ background: '#EAF7EF', color: '#0B6B32' }}>Cet appareil</span> : <button onClick={() => showToast('✅ Session déconnectée')} style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', padding: '6px 12px', borderRadius: 8, border: 'none' }}>Déconnecter</button>}
+                </div>
+              ))}
+            </>
+          )}
         </div>
       </div>
     );
@@ -269,12 +373,12 @@ function ProducteurProfilContent() {
 
   // ═══ PANEL: Notifications ═══
   if (panel === 'notifs') {
-    const notifications = [
+    const [notifs, setNotifs] = useState([
       { id: 1, title: 'Nouvelle commande', desc: 'Vous avez reçu une commande de 12 000 FCFA de Fatou Diop.', time: 'Il y a 10 min', unread: true, icon: '📦' },
       { id: 2, title: 'Stock faible', desc: 'Attention: Le stock de "Mangues Kent" est presque épuisé (12 Kg restants).', time: 'Il y a 2h', unread: true, icon: '⚠️' },
       { id: 3, title: 'Paiement reçu', desc: 'Le virement de 245 000 FCFA a été traité avec succès.', time: 'Hier', unread: false, icon: '💰' },
       { id: 4, title: 'Avis client', desc: 'Un acheteur a laissé un avis 5 étoiles sur "Riz Local Étuvé".', time: 'Il y a 2j', unread: false, icon: '⭐' }
-    ];
+    ]);
     return (
       <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
         <div className="page-header">
@@ -282,17 +386,26 @@ function ProducteurProfilContent() {
           <h1>Notifications</h1>
           <div style={{ width: 24 }} />
         </div>
-        <div style={{ padding: 20 }}>
-          {notifications.map(notif => (
-            <div key={notif.id} className="card" style={{ padding: 16, marginBottom: 10, display: 'flex', gap: 14, borderLeft: notif.unread ? '4px solid var(--primary)' : '4px solid transparent' }}>
+        <div style={{ padding: '0 20px' }}>
+          {notifs.some(n => n.unread) && (
+            <button onClick={() => { setNotifs(notifs.map(n => ({ ...n, unread: false }))); showToast('✅ Toutes marquées comme lues'); }} style={{ display: 'block', width: '100%', textAlign: 'right', padding: '10px 0', fontSize: 13, fontWeight: 600, color: 'var(--primary)', background: 'none', border: 'none' }}>Tout marquer comme lu</button>
+          )}
+          {notifs.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 40 }}>
+              <span style={{ fontSize: 40, display: 'block', marginBottom: 12 }}>🔔</span>
+              <p style={{ fontWeight: 600, fontSize: 15 }}>Aucune notification</p>
+            </div>
+          ) : notifs.map(notif => (
+            <div key={notif.id} onClick={() => setNotifs(notifs.map(n => n.id === notif.id ? { ...n, unread: false } : n))} className="card" style={{ padding: 16, marginBottom: 10, display: 'flex', gap: 14, borderLeft: notif.unread ? '4px solid var(--primary)' : '4px solid transparent', cursor: 'pointer' }}>
               <div style={{ fontSize: 24, alignSelf: 'flex-start', marginTop: 2 }}>{notif.icon}</div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <p style={{ fontWeight: notif.unread ? 700 : 600, fontSize: 14 }}>{notif.title}</p>
+                  <p style={{ fontWeight: notif.unread ? 700 : 500, fontSize: 14 }}>{notif.title}</p>
                   <span style={{ fontSize: 11, color: 'var(--text-light)' }}>{notif.time}</span>
                 </div>
                 <p style={{ fontSize: 13, color: notif.unread ? 'var(--text)' : 'var(--text-secondary)', lineHeight: 1.4 }}>{notif.desc}</p>
               </div>
+              <button onClick={(e) => { e.stopPropagation(); setNotifs(notifs.filter(n => n.id !== notif.id)); showToast('🗑️ Notification supprimée'); }} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: 'var(--text-light)', padding: 4 }}>✕</button>
             </div>
           ))}
         </div>

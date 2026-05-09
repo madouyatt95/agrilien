@@ -232,6 +232,24 @@ export default function AcheteurHomePage() {
         )}
       </form>
 
+      {/* ═══ SERVICES PREMIUM ═══ */}
+      <div style={{ padding: '0 20px', marginBottom: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <button onClick={() => router.push('/acheteur/bon-marche')} className="card" style={{ padding: 16, border: '1px solid #BBF7D0', background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: '#16A34A', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>📸</div>
+          <div>
+            <p style={{ fontWeight: 800, fontSize: 13, color: '#166534', marginBottom: 2 }}>Commande Assistée</p>
+            <p style={{ fontSize: 11, color: '#15803D', lineHeight: 1.3 }}>Prenez votre liste en photo, l'IA gère le panier</p>
+          </div>
+        </button>
+        <button onClick={() => router.push('/acheteur/coffrets')} className="card" style={{ padding: 16, border: '1px solid #FDE047', background: 'linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: '#CA8A04', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎁</div>
+          <div>
+            <p style={{ fontWeight: 800, fontSize: 13, color: '#854D0E', marginBottom: 2 }}>Coffrets Cadeaux</p>
+            <p style={{ fontSize: 11, color: '#A16207', lineHeight: 1.3 }}>Cadeaux entreprises et séminaires locaux</p>
+          </div>
+        </button>
+      </div>
+
       {/* ═══ VENTES FLASH (PANIC BUTTON ANTI-GASPI) ═══ */}
       <div style={{ padding: '0 20px', marginBottom: 24 }}>
         <div style={{ background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)', borderRadius: 16, padding: '16px 20px', color: '#fff', boxShadow: '0 10px 25px rgba(239, 68, 68, 0.25)' }}>
