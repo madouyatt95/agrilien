@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, MapPin, Users, Star, ShieldCheck, Phone, Navigation } from 'lucide-react';
+import { ChevronLeft, MapPin, Users, Star, ShieldCheck, Phone, Navigation, Radio } from 'lucide-react';
 import { allProducers } from '@/data/mock-users';
 import { getCurrentLocation } from '@/lib/utils';
 import LocationAutocomplete from '@/components/ui/LocationAutocomplete';
@@ -35,6 +35,21 @@ export default function CartePage() {
   const [selected, setSelected] = useState<typeof regions[0] | null>(null);
   const [selectedProducer, setSelectedProducer] = useState<typeof allProducers[0] | null>(null);
   const [view, setView] = useState<View>('carte');
+  const [radarMode, setRadarMode] = useState(false);
+  const [radarDetections, setRadarDetections] = useState<{name: string, type: string, distance: string}[]>([]);
+
+  const toggleRadar = () => {
+    if (radarMode) {
+      setRadarMode(false);
+      setRadarDetections([]);
+      return;
+    }
+    setRadarMode(true);
+    setRadarDetections([]);
+    setTimeout(() => setRadarDetections([{ name: 'Amadou Ba', type: 'Producteur', distance: '2.3 km' }]), 1500);
+    setTimeout(() => setRadarDetections(prev => [...prev, { name: 'Ibrahima Transport', type: 'Transporteur', distance: '800 m' }]), 2800);
+    setTimeout(() => setRadarDetections(prev => [...prev, { name: 'Mariama Sow', type: 'Producteur', distance: '5.1 km' }]), 4000);
+  };
 
   const totalProducers = regions.reduce((s, r) => s + r.producers, 0);
 
@@ -105,7 +120,47 @@ export default function CartePage() {
         <button onClick={handleLocateMe} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#EFF6FF', color: '#3B82F6', border: '1px solid #BFDBFE', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
           <Navigation size={14} /> Me géolocaliser
         </button>
+        <button onClick={toggleRadar} style={{ display: 'flex', alignItems: 'center', gap: 4, background: radarMode ? '#10B981' : '#F0FDF4', color: radarMode ? '#fff' : '#16A34A', border: radarMode ? 'none' : '1px solid #BBF7D0', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
+          <Radio size={14} /> Radar
+        </button>
       </div>
+
+      {/* Radar Overlay */}
+      {radarMode && (
+        <div style={{ padding: '0 20px 12px' }}>
+          <div style={{ background: '#0F172A', borderRadius: 16, padding: 16, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', height: 160 }}>
+              {/* Radar rings */}
+              {[120, 90, 60, 30].map((size, i) => (
+                <div key={i} className="radar-ring" style={{ position: 'absolute', width: size, height: size, borderRadius: '50%', border: '1px solid rgba(16, 185, 129, 0.2)', animationDelay: `${i * 0.5}s` }} />
+              ))}
+              {/* Radar sweep */}
+              <div className="radar-sweep" style={{ position: 'absolute', width: 60, height: 60, borderRadius: '50%' }} />
+              {/* Center dot */}
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 15px #10B981', zIndex: 2 }} />
+            </div>
+            <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: 12, marginTop: 8 }}>
+              {radarDetections.length === 0 ? 'Détection en cours...' : `${radarDetections.length} entité(s) détectée(s) à proximité`}
+            </p>
+            {radarDetections.length > 0 && (
+              <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {radarDetections.map((d, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '10px 12px', borderRadius: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 16 }}>{d.type === 'Producteur' ? '👨‍🌾' : '🚛'}</span>
+                      <div>
+                        <p style={{ color: '#F8FAFC', fontSize: 13, fontWeight: 600 }}>{d.name}</p>
+                        <p style={{ color: '#64748B', fontSize: 11 }}>{d.type}</p>
+                      </div>
+                    </div>
+                    <span style={{ color: '#10B981', fontSize: 13, fontWeight: 700 }}>{d.distance}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {view === 'carte' && (
         <>
@@ -313,6 +368,23 @@ export default function CartePage() {
           ))}
         </div>
       )}
+      <style dangerouslySetInnerHTML={{__html: `
+        .radar-ring {
+          animation: radarPulse 2s ease-out infinite;
+        }
+        @keyframes radarPulse {
+          0% { transform: scale(0.8); opacity: 0.6; }
+          100% { transform: scale(1.3); opacity: 0; }
+        }
+        .radar-sweep {
+          background: conic-gradient(from 0deg, transparent 0deg, rgba(16, 185, 129, 0.3) 60deg, transparent 120deg);
+          animation: radarSweep 2s linear infinite;
+        }
+        @keyframes radarSweep {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}} />
     </div>
   );
 }

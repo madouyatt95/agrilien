@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { products } from '@/data/mock-products';
 import { categories } from '@/data/mock-categories';
-import { Search, Bell, Menu, Heart, MapPin, ShoppingCart, X, ChevronRight, Gavel } from 'lucide-react';
+import { Search, Bell, Menu, Heart, MapPin, ShoppingCart, X, ChevronRight, Gavel, Camera } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import AgriLienLogo from '@/components/ui/Logo';
 import styles from './acheteur.module.css';
@@ -18,6 +18,44 @@ export default function AcheteurHomePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [heroProducts, setHeroProducts] = useState<typeof products>([]);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [activeStory, setActiveStory] = useState<number | null>(null);
+  const [storyProgress, setStoryProgress] = useState(0);
+  const [showPhotoScanner, setShowPhotoScanner] = useState(false);
+  const [scanComplete, setScanComplete] = useState(false);
+
+  const mockStories = [
+    { id: 1, producer: 'Amadou Ba', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&h=900&fit=crop', caption: 'Récolte des mangues Kent ce matin 🥭', time: 'Il y a 2h', hasNew: true },
+    { id: 2, producer: 'Mariama Sow', photo: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=100&h=100&fit=crop', image: 'https://images.unsplash.com/photo-1595855759920-86582396756a?w=600&h=900&fit=crop', caption: 'Nos poules pondeuses en pleine forme 🐔', time: 'Il y a 4h', hasNew: true },
+    { id: 3, producer: 'Ousmane Diallo', photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop', image: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=900&fit=crop', caption: 'Le riz est bientôt prêt pour la récolte 🌾', time: 'Il y a 6h', hasNew: false },
+    { id: 4, producer: 'Alpha Ndiaye', photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop', image: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600&h=900&fit=crop', caption: 'Chargement des oignons pour Dakar 🧅🚛', time: 'Il y a 8h', hasNew: false },
+  ];
+
+  // Story auto-progress
+  useEffect(() => {
+    if (activeStory === null) return;
+    setStoryProgress(0);
+    const interval = setInterval(() => {
+      setStoryProgress(prev => {
+        if (prev >= 100) { setActiveStory(null); return 0; }
+        return prev + 2;
+      });
+    }, 100);
+    return () => clearInterval(interval);
+  }, [activeStory]);
+
+  // Photo scanner simulation
+  const handlePhotoScan = () => {
+    setShowPhotoScanner(true);
+    setScanComplete(false);
+    setTimeout(() => {
+      setScanComplete(true);
+      setTimeout(() => {
+        setShowPhotoScanner(false);
+        setScanComplete(false);
+        router.push('/acheteur/recherche?q=tomates');
+      }, 1200);
+    }, 2500);
+  };
 
   useEffect(() => {
     const freshProducts = products.filter(p => p.category === 'Fruits & Légumes' && p.isAvailable);
@@ -127,6 +165,20 @@ export default function AcheteurHomePage() {
         </div>
       </div>
 
+      {/* ═══ STORIES BAR ═══ */}
+      <div style={{ padding: '12px 0 8px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', gap: 14, overflowX: 'auto', padding: '0 20px', scrollbarWidth: 'none' }}>
+          {mockStories.map((story, i) => (
+            <button key={story.id} onClick={() => setActiveStory(i)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
+              <div style={{ width: 62, height: 62, borderRadius: '50%', padding: 2, background: story.hasNew ? 'linear-gradient(135deg, #16A34A, #22D3EE)' : '#D1D5DB' }}>
+                <img src={story.photo} alt={story.producer} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff' }} />
+              </div>
+              <span style={{ fontSize: 11, color: 'var(--text-secondary)', maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{story.producer.split(' ')[0]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* ═══ GREETING ═══ */}
       <div className={styles.greeting}>
         <h1>Bonjour, {user?.firstName || 'Fatou'} 👋</h1>
@@ -144,6 +196,9 @@ export default function AcheteurHomePage() {
             onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           />
+          <button type="button" onClick={handlePhotoScan} style={{ padding: 4, display: 'flex', alignItems: 'center' }} title="Recherche par photo">
+            <Camera size={18} color="#16A34A" />
+          </button>
           {searchQuery && (
             <button type="button" onClick={() => { setSearchQuery(''); setShowSuggestions(false); }} style={{ padding: 4 }}>
               <X size={16} color="#9CA3AF" />
@@ -370,6 +425,67 @@ export default function AcheteurHomePage() {
         <span>🌱</span>
         <p>Soutenez nos producteurs locaux ! Chaque achat soutient l&apos;agriculture sénégalaise.</p>
       </div>
+
+      {/* ═══ STORY VIEWER FULLSCREEN ═══ */}
+      {activeStory !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 500, display: 'flex', flexDirection: 'column' }} onClick={() => setActiveStory(null)}>
+          <div style={{ padding: '12px 16px', display: 'flex', gap: 4 }}>
+            {mockStories.map((_, i) => (
+              <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.3)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', borderRadius: 2, background: '#fff', width: i < activeStory ? '100%' : i === activeStory ? `${storyProgress}%` : '0%', transition: 'width 0.1s linear' }} />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px' }}>
+            <img src={mockStories[activeStory].photo} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff' }} />
+            <div>
+              <p style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>{mockStories[activeStory].producer}</p>
+              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>{mockStories[activeStory].time}</p>
+            </div>
+            <button onClick={(e) => { e.stopPropagation(); setActiveStory(null); }} style={{ marginLeft: 'auto', color: '#fff', background: 'none', border: 'none', padding: 8 }}>
+              <X size={24} />
+            </button>
+          </div>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <img src={mockStories[activeStory].image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+          <div style={{ padding: '16px 20px 40px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
+            <p style={{ color: '#fff', fontSize: 15, fontWeight: 600 }}>{mockStories[activeStory].caption}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ PHOTO SCANNER OVERLAY ═══ */}
+      {showPhotoScanner && (
+        <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={() => { setShowPhotoScanner(false); setScanComplete(false); }} style={{ position: 'absolute', top: 20, right: 20, color: '#fff', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+            <X size={24} />
+          </button>
+          <div style={{ position: 'relative', width: 250, height: 250, borderRadius: 24, overflow: 'hidden', border: '3px solid rgba(22, 163, 74, 0.6)' }}>
+            <img src="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=300&h=300&fit=crop" alt="scan" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {!scanComplete && <div className="scan-laser" />}
+            {scanComplete && <div style={{ position: 'absolute', inset: 0, background: 'rgba(22, 163, 74, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 48 }}>✅</span></div>}
+          </div>
+          <p style={{ color: '#fff', marginTop: 24, fontSize: 16, fontWeight: 700 }}>{scanComplete ? 'Tomates détectées !' : 'Analyse en cours...'}</p>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>{scanComplete ? 'Redirection vers les résultats...' : 'Pointez l\'appareil vers le produit'}</p>
+        </div>
+      )}
+
+      <style dangerouslySetInnerHTML={{__html: `
+        .scan-laser {
+          position: absolute;
+          left: 0; right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, transparent, #16A34A, transparent);
+          animation: scanMove 1.5s ease-in-out infinite;
+          box-shadow: 0 0 15px #16A34A;
+        }
+        @keyframes scanMove {
+          0% { top: 0; }
+          50% { top: calc(100% - 3px); }
+          100% { top: 0; }
+        }
+      `}} />
     </div>
   );
 }

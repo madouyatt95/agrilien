@@ -205,6 +205,39 @@ export default function ProducteurDashboard() {
           </div>
         </div>
 
+        {/* 📈 Forecast de Trésorerie */}
+        <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 24, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #064E3B, #10B981)', padding: '16px 20px', color: '#fff' }}>
+            <h3 style={{ fontSize: 14, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
+              📈 Prévisions de Trésorerie
+            </h3>
+          </div>
+          <div style={{ padding: 16 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+              {[
+                { period: '7 jours', amount: 85000, trend: '+12%' },
+                { period: '30 jours', amount: 340000, trend: '+8%' },
+                { period: '90 jours', amount: 1250000, trend: '+22%' },
+              ].map(f => (
+                <div key={f.period} style={{ flex: 1, textAlign: 'center', padding: 12, background: 'var(--bg)', borderRadius: 12 }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>{f.period}</p>
+                  <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>{formatPrice(f.amount)}</p>
+                  <span style={{ fontSize: 11, color: '#10B981', fontWeight: 700 }}>{f.trend}</span>
+                </div>
+              ))}
+            </div>
+            {/* Mini graphique simulé */}
+            <div style={{ height: 60, display: 'flex', alignItems: 'flex-end', gap: 3 }}>
+              {[30, 45, 35, 55, 40, 60, 50, 70, 55, 75, 65, 80, 70, 85, 90].map((h, i) => (
+                <div key={i} style={{ flex: 1, height: `${h}%`, background: `rgba(16, 185, 129, ${0.3 + (i / 20)})`, borderRadius: '4px 4px 0 0', transition: 'height 0.5s ease' }} />
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-secondary)', marginTop: 4 }}>
+              <span>Avr</span><span>Mai</span><span>Juin</span><span>Juil</span>
+            </div>
+          </div>
+        </div>
+
         {/* Quick Actions (Coopérative & Transport) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 24 }}>
           <button onClick={() => router.push('/producteur/cooperative')} className="card" style={{ padding: '16px 12px', display: 'flex', alignItems: 'center', gap: 12 }}>

@@ -95,6 +95,34 @@ export default function ProducerPublicPage() {
         </div>
       </div>
 
+      {/* Score de Fiabilité */}
+      <div style={{ padding: '0 20px 16px' }}>
+        <div className="card" style={{ padding: 16 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+            ⭐ Score de Fiabilité
+            <span style={{ fontSize: 11, background: '#DCFCE7', color: '#16A34A', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>
+              {Math.round((98 + producer.rating * 20 + 95 + 97) / 4)}%
+            </span>
+          </h3>
+          {[
+            { label: 'Respect des délais', value: 98, color: '#16A34A' },
+            { label: 'Qualité des produits', value: Math.round(producer.rating * 20), color: '#3B82F6' },
+            { label: 'Résolution de litiges', value: 95, color: '#8B5CF6' },
+            { label: 'Satisfaction client', value: 97, color: '#F59E0B' },
+          ].map((metric) => (
+            <div key={metric.label} style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
+                <span style={{ color: 'var(--text-secondary)' }}>{metric.label}</span>
+                <span style={{ fontWeight: 700, color: metric.color }}>{metric.value}%</span>
+              </div>
+              <div style={{ height: 6, background: 'var(--bg)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${metric.value}%`, background: metric.color, borderRadius: 3, transition: 'width 1s ease' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Produits */}
       <div style={{ padding: '0 20px 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>

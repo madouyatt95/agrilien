@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import BottomNav, { buyerNavItems } from '@/components/ui/BottomNav';
+import AIAssistant from '@/components/ui/AIAssistant';
 
 export default function AcheteurLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -12,6 +13,7 @@ export default function AcheteurLayout({ children }: { children: React.ReactNode
     <>
       <main className={hideNav ? '' : 'page'}>{children}</main>
       {!hideNav && <BottomNav items={buyerNavItems} />}
+      <AIAssistant />
     </>
   );
 }
