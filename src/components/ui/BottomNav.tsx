@@ -28,7 +28,7 @@ export default function BottomNav({ items }: { items: NavItem[] }) {
                 <div className="nav-v2-icon-wrap">
                   {isActive ? item.activeIcon : item.icon}
                 </div>
-                {badge && badge > 0 && <span className="nav-v2-badge">{badge}</span>}
+                {badge != null && badge > 0 && <span className="nav-v2-badge">{badge}</span>}
                 <span className="nav-v2-label">{item.label}</span>
                 {isActive && <div className="nav-v2-dot" />}
               </Link>
